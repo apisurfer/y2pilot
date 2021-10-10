@@ -1,0 +1,28 @@
+.helpScreen {
+  position: absolute;
+  z-index: 100;
+  overflow: auto;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 1rem 2rem;
+  background: #000;
+}
+
+.helpScreen a {
+  color: #fff;
+}
+
+.shortcutExplanation {
+  margin-bottom: 5px;
+  display: block;
+}
+
+.helpScreen .emphasize {
+  font-size: 1rem;
+}
+
+.helpScreenContent {
+  max-width: 800px;
+}

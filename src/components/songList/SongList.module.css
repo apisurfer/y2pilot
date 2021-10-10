@@ -1,0 +1,113 @@
+.editor {
+  position: absolute;
+  z-index: 100;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: rgba(0, 0, 0, 1);
+}
+
+.header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.header h2 span {
+  font-size: 36px;
+}
+
+.editor ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.editor ul li {
+  display: flex;
+  justify-content: flex-start;
+  font-size: 15px;
+  line-height: 1.4;
+  height: 58px;
+}
+
+.editor ul li a {
+  color: #fff;
+}
+.editor ul li a:hover {
+  color: #4db6ac;
+}
+
+.songUrl {
+  color: #fff;
+  transition: color 0.2s ease-in;
+  cursor: pointer;
+}
+
+.songUrlGhost {
+  opacity: 0.5;
+  background: rgba(52, 193, 162, 0.7) !important;
+}
+
+.songUrl.activeSongUrl {
+  color: #4db6ac;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.playlistControls {
+  display: flex;
+  margin: 6px 0 0 1rem;
+}
+
+.playlistControls button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: transparent;
+}
+
+.playlistControls .textButton {
+  color: white;
+  text-decoration: underline;
+}
+
+.songThumb {
+  display: inline-block;
+  height: 58px;
+  width: 58px;
+  background-size: cover;
+}
+
+.songTitle {
+  margin-left: 1rem;
+  padding: 1rem 0;
+}
+
+.dragHandle {
+  padding: 0 0.5rem 0 0.5rem;
+  cursor: move; /* fallback */
+  cursor: grab;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dragHandleIndex {
+  display: inline-block;
+  margin-left: 0.5rem;
+  width: 25px;
+  font-size: 0.8em;
+  line-height: 1.6;
+  color: #fff;
+}
+.dragHandleIcon {
+  padding: 6px 0 0 0;
+}
+.dragHandleIcon svg {
+  width: 26px;
+  height: 26px;
+  fill: #333;
+}

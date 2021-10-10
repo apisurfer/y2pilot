@@ -1,0 +1,48 @@
+.bar {
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  /* overflow: hidden; */
+}
+
+.progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 0, 0, 0.3);
+  z-index: 150;
+}
+
+.hoverLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.timing {
+  font-size: 16px;
+  position: absolute;
+  z-index: 200;
+  top: 0px;
+  right: 10px;
+  pointer-events: none;
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.hoverTiming {
+  position: absolute;
+  z-index: 250;
+  height: 30px;
+  top: -30px;
+  line-height: 30px;
+  padding: 0 0.5rem;
+  transform: translateX(-50%);
+  background: #000;
+}

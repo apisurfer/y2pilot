@@ -1,0 +1,38 @@
+.dropArea {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background: rgba(255, 255, 255, 0.8);
+  color: #000;
+}
+
+.dropArea.show {
+  display: flex;
+}
+
+.dropArea .message {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  font-weight: bold;
+  font-size: 1.8rem;
+  pointer-events: none;
+}
+
+.dropArea .message span {
+  display: inline-block;
+  padding: 0;
+}
+
+.dropArea .message .oversize {
+  font-size: 8rem;
+  margin-top: -1.2rem;
+}

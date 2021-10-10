@@ -1,0 +1,45 @@
+.controls {
+  height: 80px;
+  background: #18211f;
+}
+
+.controls button {
+  padding: 0 10px;
+}
+
+.fastNav {
+  height: 25px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.mainControlButtons {
+  height: 55px;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.mainControlButtons button {
+  font-size: 15px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.75);
+  border: none;
+  transition: color 0.1s ease-out;
+  outline: none;
+  background: transparent;
+}
+
+.mainControlButtons button:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.firstControlSection {
+  display: flex;
+  height: 100%;
+}
+
+.playlistControlSection {
+  display: flex;
+  height: 100%;
+}

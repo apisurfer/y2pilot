@@ -1,0 +1,37 @@
+button + .control {
+  margin-left: 0.8rem;
+}
+
+.control {
+  cursor: pointer;
+  position: relative;
+  width: 100px;
+  height: 26px;
+  margin: 15px 0;
+}
+
+.bgOutline {
+  z-index: 0;
+  background: rgba(255, 255, 255, 0.1);
+  width: 100%;
+  height: 6px;
+  margin-top: 10px;
+}
+
+.currentValue {
+  position: absolute;
+  height: 6px;
+  top: 10px;
+  left: 0;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: 150;
+}
+
+.hoverLayer {
+  position: absolute;
+  height: 6px;
+  top: 10px;
+  left: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.25);
+}
