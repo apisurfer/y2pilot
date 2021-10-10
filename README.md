@@ -12,6 +12,8 @@ In case you decide to tamper with it, fork it, extend it or submit a PR don't he
 
 ## Local setup
 
+This app can work without API but in that case information about youtube videos are not available(only youtube video IDs are show) and playlist creation won't work. To have a complete functionality, run with [y2pilot-worker](https://github.com/lvidakovic/y2pilot-worker)
+
 ```
 cp .env.local-example .env.local
 # update worker host to match your deployed instance
