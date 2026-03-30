@@ -1,0 +1,19 @@
+type = "webpack"
+zone_id = ""
+account_id = "your_account_ID"
+route = ""
+workers_dev = true
+webpack_config = "webpack.config.js"
+name = "y2pilot"
+
+[env.staging]
+kv_namespaces = [
+	{ binding = "VIDEOS", id = "your_prod_videos_kv_namespace_id", preview_id = "your_dev_videos_kv_namespace_id" },
+	{ binding = "PLAYLISTS", id = "your_prod_playlists_kv_namespace_id", preview_id = "your_dev_playlists_kv_namespace_id" }
+]
+
+[env.production]
+kv_namespaces = [
+	{ binding = "VIDEOS", id = "your_prod_videos_kv_namespace_id", preview_id = "your_dev_videos_kv_namespace_id" },
+	{ binding = "PLAYLISTS", id = "your_prod_playlists_kv_namespace_id", preview_id = "your_dev_playlists_kv_namespace_id" }
+]
