@@ -1,4 +1,5 @@
 import {getVideo as kvGetVideo, putVideo as kvPutVideo} from '../service/kv'
+import type {Env} from '../types'
 
 interface YtOembed {
   title: string,
@@ -27,15 +28,15 @@ export interface YtOembedLight {
   thumbnailUrl: string,
 }
 
-export async function fetchOembedInfo(ytVideoId: string) : Promise<YtOembedLight> {
+export async function fetchOembedInfo(env: Env, ytVideoId: string) : Promise<YtOembedLight> {
   if (!ytVideoId) {
     throw new Error('Bad request - no video ID recognised')
   }
 
-  const cachedVal = await kvGetVideo(ytVideoId)
+  const cachedVal = await kvGetVideo(env, ytVideoId)
 
   if (cachedVal) {
-    return cachedVal as YtOembedLight
+    return cachedVal
   }
 
   const ytVideoUrl = `https://www.youtube.com/watch?v=${ytVideoId}`
@@ -66,7 +67,7 @@ export async function fetchOembedInfo(ytVideoId: string) : Promise<YtOembedLight
     thumbnailUrl: oembed.thumbnail_url,
   }
 
-  await kvPutVideo(ytVideoId, oembedLight)
+  await kvPutVideo(env, ytVideoId, oembedLight)
 
   return oembedLight
 }

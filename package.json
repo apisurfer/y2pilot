@@ -8,6 +8,7 @@
     "start": "pnpm --filter @y2pilot/web start",
     "worker:dev": "pnpm --filter @y2pilot/worker dev",
     "worker:build": "pnpm --filter @y2pilot/worker build",
-    "worker:test": "pnpm --filter @y2pilot/worker test"
+    "worker:deploy": "pnpm --filter @y2pilot/worker deploy",
+    "dev:all": "pnpm -r --parallel dev"
   }
 }

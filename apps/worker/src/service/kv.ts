@@ -1,40 +1,22 @@
-import {nanoid} from 'nanoid';
 import type {YtOembedLight} from '../util/fetch'
+import type {Env} from '../types'
 
 interface Playlist {
   videoIds: Array<string>
 }
 
-interface GetOps {
-  type?: "text" | "json" | "arrayBuffer" | "stream"
-  cacheTtl?: number
+export function putVideo(env: Env, id: string, oembed: YtOembedLight) {
+  return env.VIDEOS.put(id, JSON.stringify(oembed))
 }
 
-interface PutOpts {
-  expiration: number
-  expirationTtl: number
+export function getVideo(env: Env, id: string): Promise<YtOembedLight | null> {
+  return env.VIDEOS.get<YtOembedLight>(id, {type: 'json'})
 }
 
-interface KV {
-  get: (key: string, opts?: GetOps) => Promise<string | Object>
-  put: (key: string, value: Object, opts?: PutOpts) => Promise<any>
+export function putPlaylist(env: Env, playlistId: string, playlist: Playlist) {
+  return env.PLAYLISTS.put(playlistId, JSON.stringify(playlist))
 }
 
-declare const VIDEOS: KV
-declare const PLAYLISTS: KV
-
-export function putVideo(id: string, oembed: YtOembedLight) {
-  return VIDEOS.put(id, JSON.stringify(oembed))
-}
-
-export function getVideo(id: string) {
-  return VIDEOS.get(id, {type: 'json'})
-}
-
-export function putPlaylist(playlistId: string, playlist: Playlist) {
-  return PLAYLISTS.put(playlistId, JSON.stringify(playlist))
-}
-
-export function getPlaylist(id: string) {
-  return PLAYLISTS.get(id, {type: 'json'})
+export function getPlaylist(env: Env, id: string): Promise<Playlist | null> {
+  return env.PLAYLISTS.get<Playlist>(id, {type: 'json'})
 }

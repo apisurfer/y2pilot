@@ -1,19 +1,19 @@
-type = "webpack"
-zone_id = ""
-account_id = "your_account_ID"
-route = ""
+name = "y2pilot-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
 workers_dev = true
-webpack_config = "webpack.config.js"
-name = "y2pilot"
 
-[env.staging]
-kv_namespaces = [
-	{ binding = "VIDEOS", id = "your_prod_videos_kv_namespace_id", preview_id = "your_dev_videos_kv_namespace_id" },
-	{ binding = "PLAYLISTS", id = "your_prod_playlists_kv_namespace_id", preview_id = "your_dev_playlists_kv_namespace_id" }
-]
+# For local dev with `wrangler dev`, IDs can be any placeholder string —
+# Miniflare emulates KV in-memory. Replace with real IDs before deploy:
+#   wrangler kv namespace create VIDEOS
+#   wrangler kv namespace create PLAYLISTS
+[[kv_namespaces]]
+binding = "VIDEOS"
+id = "your_videos_kv_namespace_id"
 
-[env.production]
-kv_namespaces = [
-	{ binding = "VIDEOS", id = "your_prod_videos_kv_namespace_id", preview_id = "your_dev_videos_kv_namespace_id" },
-	{ binding = "PLAYLISTS", id = "your_prod_playlists_kv_namespace_id", preview_id = "your_dev_playlists_kv_namespace_id" }
-]
+[[kv_namespaces]]
+binding = "PLAYLISTS"
+id = "your_playlists_kv_namespace_id"
+
+[dev]
+port = 8787

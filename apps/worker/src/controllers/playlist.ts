@@ -2,7 +2,8 @@ import { nanoid } from 'nanoid'
 import type {Request as IttyRequest} from 'itty-router'
 import {getVideoId} from '../util/string'
 import {getPlaylist as kvGetPlaylist, putPlaylist as kvPutPlaylist} from '../service/kv'
-import {getResponseConf} from '../util/response';
+import {getResponseConf} from '../util/response'
+import type {Env} from '../types'
 
 interface FixedIttyRequest extends IttyRequest {
   json: () => Promise<Object>
@@ -12,7 +13,7 @@ interface CreatePlaylistRequest {
   videoIds: string[]
 }
 
-export async function createPlaylist(req: FixedIttyRequest): Promise<Response> {
+export async function createPlaylist(req: FixedIttyRequest, env: Env): Promise<Response> {
   const {videoIds} = await req.json() as CreatePlaylistRequest || {videoIds:[]}
   const ids = videoIds.map(getVideoId)
 
@@ -25,23 +26,23 @@ export async function createPlaylist(req: FixedIttyRequest): Promise<Response> {
   }
 
   const playlistId = nanoid()
-  await kvPutPlaylist(playlistId, {
+  await kvPutPlaylist(env, playlistId, {
     videoIds
-  });
+  })
 
   return new Response(JSON.stringify({
     id: playlistId
   }), getResponseConf(200))
 }
 
-export async function getPlaylist(req: FixedIttyRequest): Promise<Response> {
+export async function getPlaylist(req: FixedIttyRequest, env: Env): Promise<Response> {
   const id = req.params && req.params.id
 
   if (!id) {
     return new Response(JSON.stringify({playlistId: id, error: 'Bad playlist ID'}), getResponseConf(400))
   }
 
-  const playlist = await kvGetPlaylist(id)
+  const playlist = await kvGetPlaylist(env, id)
 
   if (!playlist) {
     return new Response(JSON.stringify({playlistId: id, error: 'Playlist not found.'}), getResponseConf(404))

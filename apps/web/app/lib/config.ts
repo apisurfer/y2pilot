@@ -1,3 +1,3 @@
 export default {
-  workerUrl: `https://${import.meta.env.VITE_WORKER_HOST}`,
+  workerUrl: import.meta.env.VITE_WORKER_URL,
 }

@@ -1,5 +1,8 @@
 import {router} from './router'
+import type {Env} from './types'
 
-addEventListener('fetch', (event) => {
-  event.respondWith(router.handle(event.request))
-})
+export default {
+  fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    return router.handle(request, env, ctx)
+  },
+}
