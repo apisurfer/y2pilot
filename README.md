@@ -4,40 +4,70 @@ Smart YouTube playlist manager app.
 
 [Live app](https://y2pilot.com)
 
-I decided to share this as open source even though it's far from a solid and clean codebase. It was developed over a long stretch of time, in my spare time and as a first experimental project in Vue.
+I decided to share this as open source even though it's far from a solid and clean codebase. It was developed over a long stretch of time, in my spare time and as a first experimental project.
 
 Other than that, it works! It's functional. You can create and save Youtube playlists and have fun with it.
 
-In case you decide to tamper with it, fork it, extend it or submit a PR don't hesitate to reach out and ask questions. I'll be happy to answer and help if need be, currently I don't have time to rethink and refactor the codebase.
+In case you decide to tamper with it, fork it, extend it or submit a PR don't hesitate to reach out and ask questions.
 
 ## Local setup
 
-This app can work without API but in that case information about youtube videos are not available(only youtube video IDs are show) and playlist creation won't work. To have a complete functionality, run with [y2pilot-worker](https://github.com/lvidakovic/y2pilot-worker)
+This is a pnpm workspace with two apps:
+
+- `apps/web` — React + Vite frontend
+- `apps/worker` — Cloudflare Worker backend (KV-backed)
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 9+
+
+### 1. Install dependencies
 
 ```
-cp .env.local-example .env.local
-# update worker host to match your deployed instance
-npm install
+pnpm install
 ```
 
-### Compiles and hot-reloads for development
+### 2. Configure the web app
 
 ```
-npm run serve
+cp apps/web/.env.local-example apps/web/.env.local
 ```
 
-### Compiles and minifies for production
+The default `VITE_WORKER_URL=http://localhost:8787` matches the local worker.
+
+### 3. Configure the worker
 
 ```
-npm run build
+cp apps/worker/wrangler.toml-example apps/worker/wrangler.toml
 ```
 
-### Lints and fixes files
+For local dev the placeholder KV IDs are fine — Miniflare emulates KV in memory. Replace them with real IDs only before deploying:
 
 ```
-npm run lint
+pnpm --filter @y2pilot/worker exec wrangler kv namespace create VIDEOS
+pnpm --filter @y2pilot/worker exec wrangler kv namespace create PLAYLISTS
 ```
 
-### Customize configuration
+### 4. Run dev servers
 
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Both apps in parallel:
+
+```
+pnpm dev:all
+```
+
+Or individually:
+
+```
+pnpm dev          # web on http://localhost:5173
+pnpm worker:dev   # worker on http://localhost:8787
+```
+
+## Other scripts
+
+```
+pnpm build           # build web
+pnpm worker:build    # dry-run build worker
+pnpm worker:deploy   # deploy worker to Cloudflare
+```
