@@ -16,14 +16,7 @@ const PLAYER_STATE = {
 }
 
 export interface PlayerHandle {
-  play(): void
-  pause(): void
   seek(seconds: number, allowSeekAhead?: boolean): void
-  mute(): void
-  unmute(): void
-  isMuted(): boolean
-  setVolume(volume: number): void
-  getVolume(): number
 }
 
 interface PlayerProps {
@@ -33,11 +26,7 @@ interface PlayerProps {
   halfScreen?: boolean
   className?: string
   onEnded?: () => void
-  onPlaying?: () => void
   onReady?: () => void
-  onPaused?: () => void
-  onDuration?: (duration: number) => void
-  onCurrentTime?: (time: number) => void
   onError?: (videoId: string) => void
 }
 
@@ -65,11 +54,7 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
     halfScreen = false,
     className,
     onEnded,
-    onPlaying,
     onReady,
-    onPaused,
-    onDuration,
-    onCurrentTime,
     onError,
   },
   ref,
@@ -80,70 +65,29 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
   // the original node.
   const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<YT.Player | null>(null)
-  const progressIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const initializedRef = useRef(false)
   const sdkIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
 
   // Keep callback refs to avoid stale closures in YT event handlers
   const onEndedRef = useRef(onEnded)
-  const onPlayingRef = useRef(onPlaying)
   const onReadyRef = useRef(onReady)
-  const onPausedRef = useRef(onPaused)
-  const onDurationRef = useRef(onDuration)
-  const onCurrentTimeRef = useRef(onCurrentTime)
   const onErrorRef = useRef(onError)
   const videoIdRef = useRef(videoId)
   const startSecondsRef = useRef(startSeconds)
   const endSecondsRef = useRef(endSeconds)
 
   onEndedRef.current = onEnded
-  onPlayingRef.current = onPlaying
   onReadyRef.current = onReady
-  onPausedRef.current = onPaused
-  onDurationRef.current = onDuration
-  onCurrentTimeRef.current = onCurrentTime
   onErrorRef.current = onError
   videoIdRef.current = videoId
   startSecondsRef.current = startSeconds
   endSecondsRef.current = endSeconds
 
   useImperativeHandle(ref, () => ({
-    play() {
-      playerRef.current?.playVideo()
-    },
-    pause() {
-      playerRef.current?.pauseVideo()
-    },
     seek(seconds: number, allowSeekAhead = true) {
       playerRef.current?.seekTo(seconds, allowSeekAhead)
     },
-    mute() {
-      playerRef.current?.mute()
-    },
-    unmute() {
-      playerRef.current?.unMute()
-    },
-    isMuted() {
-      return playerRef.current?.isMuted?.() ?? false
-    },
-    setVolume(volume: number) {
-      playerRef.current?.setVolume(volume)
-    },
-    getVolume() {
-      return playerRef.current?.getVolume?.() ?? 0
-    },
   }))
-
-  // Start progress reporting
-  const startProgress = () => {
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
-    progressIntervalRef.current = setInterval(() => {
-      if (playerRef.current) {
-        onDurationRef.current?.(playerRef.current.getDuration?.() ?? 0)
-        onCurrentTimeRef.current?.(playerRef.current.getCurrentTime?.() ?? 0)
-      }
-    }, 500)
-  }
 
   // Load SDK and initialize player (once)
   useEffect(() => {
@@ -176,7 +120,6 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
                 endSecondsRef.current,
               )
               player.seekTo(startSecondsRef.current ?? 0, true)
-              startProgress()
               onReadyRef.current?.()
             },
             onError: (event) => {
@@ -184,16 +127,8 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
               console.error(videoIdRef.current, event)
             },
             onStateChange: (event) => {
-              switch (event.data) {
-                case PLAYER_STATE.ENDED:
-                  onEndedRef.current?.()
-                  break
-                case PLAYER_STATE.PLAYING:
-                  onPlayingRef.current?.()
-                  break
-                case PLAYER_STATE.PAUSED:
-                  onPausedRef.current?.()
-                  break
+              if (event.data === PLAYER_STATE.ENDED) {
+                onEndedRef.current?.()
               }
             },
             onPlaybackQualityChange: () => {},
@@ -207,7 +142,6 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
 
     return () => {
       if (sdkIntervalRef.current) clearInterval(sdkIntervalRef.current)
-      if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
       try {
         playerRef.current?.destroy?.()
       } catch {
@@ -229,7 +163,6 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
     if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
       playSlice(playerRef.current, videoId, startSeconds, endSeconds)
       playerRef.current.seekTo(startSeconds ?? 0, true)
-      startProgress()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, startSeconds])

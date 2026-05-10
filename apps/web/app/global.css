@@ -21,7 +21,7 @@ body {
   position: relative;
   margin: 0;
   padding: 0;
-  height: calc(100vh - 76px - 80px);
+  height: calc(100vh - 76px);
   overflow: hidden;
 }
 
@@ -31,7 +31,7 @@ body {
 
 @media (min-width: 768px) {
   .appMain {
-    height: calc(100vh - 80px);
+    height: 100vh;
   }
 
   .appMain.stretched {

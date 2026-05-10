@@ -6,6 +6,9 @@ import {
   ChevronRight,
   HelpCircle,
   ListMusic,
+  SkipBack,
+  SkipForward,
+  Trash2,
 } from 'lucide-react'
 import pilotSvg from '~/assets/pilot.svg'
 import css from './AppHeader.module.css'
@@ -15,6 +18,9 @@ interface AppHeaderProps {
   hasPlayback: boolean
   onToggleHelp: () => void
   onTogglePlaylist: () => void
+  onPrevious: () => void
+  onNext: () => void
+  onRemove: () => void
 }
 
 export default function AppHeader({
@@ -22,6 +28,9 @@ export default function AppHeader({
   hasPlayback,
   onToggleHelp,
   onTogglePlaylist,
+  onPrevious,
+  onNext,
+  onRemove,
 }: AppHeaderProps) {
   const [linksOpen, setLinksOpen] = useState(false)
   const [controlsOpen, setControlsOpen] = useState(false)
@@ -60,14 +69,44 @@ export default function AppHeader({
           </div>
           {hasPlayback && controlsOpen && (
             <div className={css.controlsMenu}>
-              <button
-                type="button"
-                className={`${css.controlItem} ${activeStage === 'playlist' ? css.active : ''}`}
-                onClick={onTogglePlaylist}
-              >
-                <ListMusic size={18} />
-                <span>playlist</span>
-              </button>
+              <div className={css.controlGroup}>
+                <button
+                  type="button"
+                  className={css.controlItem}
+                  onClick={onPrevious}
+                >
+                  <SkipBack size={18} />
+                  <span>previous</span>
+                </button>
+                <button
+                  type="button"
+                  className={css.controlItem}
+                  onClick={onNext}
+                >
+                  <SkipForward size={18} />
+                  <span>next</span>
+                </button>
+              </div>
+              <div className={css.controlGroup}>
+                <button
+                  type="button"
+                  className={`${css.controlItem} ${activeStage === 'playlist' ? css.active : ''}`}
+                  onClick={onTogglePlaylist}
+                >
+                  <ListMusic size={18} />
+                  <span>playlist</span>
+                </button>
+              </div>
+              <div className={css.controlGroup}>
+                <button
+                  type="button"
+                  className={css.controlItem}
+                  onClick={onRemove}
+                >
+                  <Trash2 size={18} />
+                  <span>remove song</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

@@ -2,7 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import AppHeader from '~/components/AppHeader/AppHeader'
 import Player, { type PlayerHandle } from '~/components/Player/Player'
-import Controls from '~/components/Controls/Controls'
 import DropArea from '~/components/DropArea/DropArea'
 import SongList from '~/components/SongList/SongList'
 import HowTo from '~/components/HowTo/HowTo'
@@ -58,11 +57,6 @@ function App() {
 
   const [videoSlice, setVideoSlice] = useState<VideoSlice | null>(null)
   const [dropMode, setDropMode] = useState(false)
-  const [duration, setDuration] = useState(0)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [playing, setPlaying] = useState(false)
-  const [playerVolume, setPlayerVolume] = useState(0)
-  const [muted, setMuted] = useState(false)
   const [showStage, setShowStage] = useState<Stage>(stages.INTRO)
   const [showPlaylistRemoveConfirmation, setShowPlaylistRemoveConfirmation] =
     useState(false)
@@ -109,15 +103,6 @@ function App() {
     savePlaylistToLS(playlist, playlistIndex)
   }, [playlist, playlistIndex, setCurrentVideoSlice])
 
-  // Reset currentTime when playlist index changes
-  const prevPlaylistIndex = useRef(playlistIndex)
-  useEffect(() => {
-    if (prevPlaylistIndex.current !== playlistIndex) {
-      prevPlaylistIndex.current = playlistIndex
-      setCurrentTime(0)
-    }
-  }, [playlistIndex])
-
   // --- Mount: Load playlist from URL param or localStorage ---
   const mountedRef = useRef(false)
   useEffect(() => {
@@ -148,17 +133,6 @@ function App() {
       playlistSetIndex(index)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // --- Volume polling ---
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (playerRef.current) {
-        setPlayerVolume(playerRef.current.getVolume())
-        setMuted(playerRef.current.isMuted())
-      }
-    }, 500)
-    return () => clearInterval(interval)
   }, [])
 
   // --- Before unload warning ---
@@ -366,34 +340,6 @@ function App() {
     }
   }
 
-  function onSeek(time: number) {
-    setCurrentTime(time)
-    playerRef.current?.seek(time)
-  }
-
-  function onControlPlay() {
-    playerRef.current?.play()
-  }
-
-  function onControlPause() {
-    playerRef.current?.pause()
-  }
-
-  function onSetVolume(volume: number) {
-    playerRef.current?.setVolume(volume)
-    setPlayerVolume(volume)
-  }
-
-  function onMute() {
-    playerRef.current?.mute()
-    setMuted(true)
-  }
-
-  function onUnmute() {
-    playerRef.current?.unmute()
-    setMuted(false)
-  }
-
   function handleSongEnded() {
     if (playlist.length > 1) {
       playlistNext()
@@ -466,6 +412,9 @@ function App() {
       <AppHeader
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
+        onPrevious={playlistPrevious}
+        onNext={playlistNext}
+        onRemove={removeCurrentSong}
         activeStage={showStage}
         hasPlayback={playlist.length > 0}
       />
@@ -521,11 +470,7 @@ function App() {
               endSeconds={videoSlice.endSeconds}
               halfScreen={isPlaylistOpen}
               onEnded={handleSongEnded}
-              onPlaying={() => setPlaying(true)}
               onReady={() => {}}
-              onPaused={() => setPlaying(false)}
-              onDuration={(d) => setDuration(d)}
-              onCurrentTime={(t) => setCurrentTime(t)}
               onError={onPlaybackError}
             />
           )}
@@ -560,30 +505,6 @@ function App() {
         </div>
       </div>
 
-      {videoSlice && (
-        <Controls
-          onPrevious={playlistPrevious}
-          onNext={playlistNext}
-          onRemove={removeCurrentSong}
-          onSeek={onSeek}
-          onPlay={onControlPlay}
-          onPause={onControlPause}
-          onSetVolume={onSetVolume}
-          onMute={onMute}
-          onUnmute={onUnmute}
-          onStartedMouseTracking={() =>
-            setDisablePlayerPointerEvents(true)
-          }
-          onStoppedMouseTracking={() =>
-            setDisablePlayerPointerEvents(false)
-          }
-          duration={duration}
-          currentTime={currentTime}
-          playing={playing}
-          playerVolume={playerVolume}
-          muted={muted}
-        />
-      )}
     </div>
   )
 }
