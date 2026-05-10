@@ -42,7 +42,10 @@ declare namespace YT {
 
 interface Window {
   YT?: {
-    Player: new (elementId: string, options?: YT.PlayerOptions) => YT.Player
+    Player: new (
+      element: string | HTMLElement,
+      options?: YT.PlayerOptions,
+    ) => YT.Player
   }
 }
 

@@ -7,6 +7,7 @@ import {
   Scripts,
 } from '@tanstack/react-router'
 import { NotificationProvider } from '~/components/Notifications'
+import ErrorBoundary from '~/components/ErrorBoundary/ErrorBoundary'
 import globalCss from '~/global.css?url'
 
 export const Route = createRootRoute({
@@ -58,7 +59,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        <NotificationProvider>{children}</NotificationProvider>
+        <ErrorBoundary>
+          <NotificationProvider>{children}</NotificationProvider>
+        </ErrorBoundary>
         <Scripts />
       </body>
     </html>

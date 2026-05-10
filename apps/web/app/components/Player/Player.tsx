@@ -6,7 +6,6 @@ import {
 } from 'react'
 import css from './Player.module.css'
 
-const PLAYER_ELEMENT_ID = 'yt-player'
 const PLAYER_STATE = {
   UNSTARTED: -1,
   ENDED: 0,
@@ -75,6 +74,11 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
   },
   ref,
 ) {
+  // Container that React owns. YT replaces a child element with an iframe,
+  // so we never let React directly manage the element YT touches — otherwise
+  // unmount throws "removeChild ... not a child" when the iframe replaced
+  // the original node.
+  const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<YT.Player | null>(null)
   const progressIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
   const initializedRef = useRef(false)
@@ -143,6 +147,11 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
 
   // Load SDK and initialize player (once)
   useEffect(() => {
+    // Create a detached target node inside our container. YT will replace
+    // this node with an iframe; React will not try to reconcile it.
+    const target = document.createElement('div')
+    containerRef.current?.appendChild(target)
+
     // Load the YT IFrame API script
     if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
       const tag = document.createElement('script')
@@ -157,7 +166,7 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
         initializedRef.current = true
         clearInterval(sdkIntervalRef.current)
 
-        const player = new window.YT.Player(PLAYER_ELEMENT_ID, {
+        const player = new window.YT.Player(target, {
           events: {
             onReady: () => {
               playSlice(
@@ -199,9 +208,13 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
     return () => {
       if (sdkIntervalRef.current) clearInterval(sdkIntervalRef.current)
       if (progressIntervalRef.current) clearInterval(progressIntervalRef.current)
-      if (playerRef.current?.destroy) {
-        playerRef.current.destroy()
+      try {
+        playerRef.current?.destroy?.()
+      } catch {
+        // ignore — iframe may already be gone
       }
+      playerRef.current = null
+      initializedRef.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -221,23 +234,9 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoId, startSeconds])
 
-  // React to halfScreen changes — adjust iframe CSS classes
-  useEffect(() => {
-    const iframe = document.querySelector(`#${PLAYER_ELEMENT_ID}`)
-    if (iframe) {
-      if (halfScreen) {
-        iframe.classList.remove(css.fullScreen)
-        iframe.classList.add(css.halfScreen)
-      } else {
-        iframe.classList.remove(css.halfScreen)
-        iframe.classList.add(css.fullScreen)
-      }
-    }
-  }, [halfScreen])
-
   return (
     <div
-      id={PLAYER_ELEMENT_ID}
+      ref={containerRef}
       className={`${css.player} ${halfScreen ? css.halfScreen : css.fullScreen} ${className || ''}`}
     />
   )

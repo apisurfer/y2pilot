@@ -79,8 +79,8 @@ export default function HelpScreen() {
 
         <p>
           y2pilot.com is designed and developed by{' '}
-          <a target="_blank" rel="noreferrer" href="https://twitter.com/tminus180">
-            @Tminus180
+          <a target="_blank" rel="noreferrer" href="https://apisurf.dev">
+            apisurf.dev
           </a>
         </p>
       </div>
