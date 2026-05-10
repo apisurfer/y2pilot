@@ -29,6 +29,16 @@ body {
   height: calc(100vh - 76px);
 }
 
+@media (min-width: 768px) {
+  .appMain {
+    height: calc(100vh - 80px);
+  }
+
+  .appMain.stretched {
+    height: 100vh;
+  }
+}
+
 .appPlayerWrap {
   position: relative;
   width: 100%;

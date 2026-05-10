@@ -464,10 +464,10 @@ function App() {
   return (
     <div className="appContainer">
       <AppHeader
-        onTogglePlaylist={handleShowPlaylist}
         onToggleHelp={handleShowHelp}
-        onAddYtUrls={handleAddVideoIdsThroughInput}
+        onTogglePlaylist={handleShowPlaylist}
         activeStage={showStage}
+        hasPlayback={playlist.length > 0}
       />
 
       <div
@@ -532,7 +532,7 @@ function App() {
         </div>
 
         <div style={{ display: showStage === stages.INTRO ? undefined : 'none' }}>
-          <HowTo />
+          <HowTo onAddYtUrls={handleAddVideoIdsThroughInput} />
         </div>
         <div
           style={{

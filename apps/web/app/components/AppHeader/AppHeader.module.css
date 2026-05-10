@@ -1,56 +1,150 @@
 .appHeader {
+  position: relative;
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 0 1rem;
-  height: 76px;
+  align-items: flex-start;
+  padding: 0.5rem 1rem;
+  min-height: 76px;
   color: #fff;
   background: #18211f;
 }
 
-a.logo {
-  text-decoration: none;
+.hud {
   display: flex;
-  justify-content: flex-start;
-  align-items: center;
-
-  font-weight: bold;
-  font-size: 1.2rem;
-  color: #fff;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
-a.logo img {
-  margin: 0 1rem 0 1rem;
-  height: 32px;
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.headChip {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.topRow {
+  display: flex;
+  align-items: stretch;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 14px 8px 12px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo img {
+  height: 24px;
   transform: scale(-1, 1);
 }
 
-.controls {
+.rightToggle {
   display: flex;
-  margin-left: 1.5rem;
-}
-
-.controls button {
-  margin-left: 1px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  outline: none;
-  color: #fff;
-  padding: 0 10px;
-  cursor: pointer;
-}
-
-.controls button:hover,
-.controls button.activeControlsBtn {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-.urlInput {
-  width: 170px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  padding: 17px;
-  outline: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  background: transparent;
   border: 0;
-  resize: none;
+  outline: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rightToggle:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bottomToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #fff;
+  cursor: pointer;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bottomToggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.controlsMenu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.linksMenu {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.controlItem,
+.linkItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+  color: #fff;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 999px;
+}
+
+.controlItem:hover,
+.controlItem.active,
+.linkItem:hover,
+.linkItem.active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@media (min-width: 768px) {
+  .appHeader {
+    background: transparent;
+    min-height: 0;
+    height: 0;
+    padding: 0;
+    pointer-events: none;
+    position: static;
+  }
+
+  .hud {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    pointer-events: auto;
+  }
+
+  .headChip {
+    background: rgba(24, 33, 31, 0.85);
+    backdrop-filter: blur(4px);
+  }
+
+  .controlItem,
+  .linkItem {
+    background: rgba(24, 33, 31, 0.85);
+    backdrop-filter: blur(4px);
+  }
 }

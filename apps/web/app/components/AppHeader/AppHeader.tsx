@@ -1,65 +1,88 @@
 import { useState } from 'react'
-import { HelpCircle } from 'lucide-react'
-import { getYtVideoId, getYtUrls } from '~/lib/string'
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  HelpCircle,
+  ListMusic,
+} from 'lucide-react'
 import pilotSvg from '~/assets/pilot.svg'
 import css from './AppHeader.module.css'
 
 interface AppHeaderProps {
   activeStage: string
-  onTogglePlaylist: () => void
+  hasPlayback: boolean
   onToggleHelp: () => void
-  onAddYtUrls: (videoIds: string[]) => void
+  onTogglePlaylist: () => void
 }
 
 export default function AppHeader({
   activeStage,
-  onTogglePlaylist,
+  hasPlayback,
   onToggleHelp,
-  onAddYtUrls,
+  onTogglePlaylist,
 }: AppHeaderProps) {
-  const [manualUrlInput, setManualUrlInput] = useState('')
-
-  function handleManualUrlChange(value: string) {
-    setManualUrlInput(value)
-    const ytUrlsFound = getYtUrls(value)
-    const videoIds = ytUrlsFound
-      .map(getYtVideoId)
-      .filter(Boolean) as string[]
-
-    if (videoIds.length) {
-      onAddYtUrls(videoIds)
-      setManualUrlInput('')
-    }
-  }
+  const [linksOpen, setLinksOpen] = useState(false)
+  const [controlsOpen, setControlsOpen] = useState(false)
 
   return (
     <div className={css.appHeader}>
-      <a className={css.logo} href="/">
-        <img src={pilotSvg} alt="Pilot" /> y2pilot
-      </a>
-      <div className={css.controls}>
-        <input
-          value={manualUrlInput}
-          autoFocus
-          className={css.urlInput}
-          type="url"
-          placeholder="Paste URL(s)"
-          onChange={(e) => handleManualUrlChange(e.target.value)}
-          onKeyUp={(e) => e.stopPropagation()}
-          onPaste={(e) => e.stopPropagation()}
-        />
-        <button
-          className={activeStage === 'playlist' ? css.activeControlsBtn : ''}
-          onClick={onTogglePlaylist}
-        >
-          Playlist
-        </button>
-        <button
-          className={activeStage === 'help' ? css.activeControlsBtn : ''}
-          onClick={onToggleHelp}
-        >
-          <HelpCircle size={28} />
-        </button>
+      <div className={css.hud}>
+        <div className={css.column}>
+          <div className={css.headChip}>
+            <div className={css.topRow}>
+              <a className={css.logo} href="/">
+                <img src={pilotSvg} alt="Pilot" />
+                <span>y2pilot</span>
+              </a>
+              <button
+                type="button"
+                className={css.rightToggle}
+                aria-expanded={linksOpen}
+                aria-label={linksOpen ? 'Close links' : 'Open links'}
+                onClick={() => setLinksOpen((v) => !v)}
+              >
+                {linksOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+              </button>
+            </div>
+            {hasPlayback && (
+              <button
+                type="button"
+                className={css.bottomToggle}
+                aria-expanded={controlsOpen}
+                aria-label={controlsOpen ? 'Close controls' : 'Open controls'}
+                onClick={() => setControlsOpen((v) => !v)}
+              >
+                {controlsOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              </button>
+            )}
+          </div>
+          {hasPlayback && controlsOpen && (
+            <div className={css.controlsMenu}>
+              <button
+                type="button"
+                className={`${css.controlItem} ${activeStage === 'playlist' ? css.active : ''}`}
+                onClick={onTogglePlaylist}
+              >
+                <ListMusic size={18} />
+                <span>playlist</span>
+              </button>
+            </div>
+          )}
+        </div>
+        {linksOpen && (
+          <div className={css.linksMenu}>
+            <button
+              type="button"
+              className={`${css.linkItem} ${activeStage === 'help' ? css.active : ''}`}
+              onClick={onToggleHelp}
+            >
+              <HelpCircle size={18} />
+              <span>help</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -99,6 +99,23 @@
   text-decoration: none;
 }
 
+.urlInput {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 17px;
+  outline: none;
+  border: 0;
+  resize: none;
+  font: inherit;
+  margin-bottom: 1.25rem;
+  border-radius: 4px;
+}
+
+.urlInput:focus {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .initInstructions .testLink {
   color: #c00;
 }
