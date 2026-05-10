@@ -5,7 +5,14 @@ import {
   Draggable,
   type DropResult,
 } from '@hello-pangea/dnd'
-import { Shuffle, Trash2, GripVertical } from 'lucide-react'
+import {
+  Shuffle,
+  Trash2,
+  GripVertical,
+  SkipBack,
+  SkipForward,
+  X,
+} from 'lucide-react'
 import { textElipsis } from '~/lib/string'
 import { fetchOembedBatch } from '~/lib/http'
 import type { Song } from '~/hooks/usePlaylist'
@@ -27,6 +34,9 @@ interface SongListProps {
   onVideoInfoError: (videoId: string) => void
   onPlaylistOrderChange: (newPlaylist: Song[]) => void
   onGeneratePlaylistURL: () => void
+  onPrevious: () => void
+  onNext: () => void
+  onRemoveCurrent: () => void
   notify: (opts: { text: string; type?: string; duration?: number }) => void
 }
 
@@ -41,10 +51,12 @@ export default function SongList({
   onVideoInfoError,
   onPlaylistOrderChange,
   onGeneratePlaylistURL,
+  onPrevious,
+  onNext,
+  onRemoveCurrent,
   notify,
 }: SongListProps) {
   const [songInfo, setSongInfo] = useState<Record<string, SongInfo>>({})
-  const [loading, setLoading] = useState(false)
   const [playlistCopy, setPlaylistCopy] = useState<Song[]>([])
   const prevPlaylistRef = useRef<Song[]>([])
 
@@ -66,7 +78,6 @@ export default function SongList({
     const missingIds = videoIds.filter((id) => !songInfo[id])
     if (missingIds.length === 0) return
 
-    setLoading(true)
     fetchOembedBatch(videoIds)
       .then((response) => {
         const videos = response.videos || []
@@ -95,9 +106,6 @@ export default function SongList({
           )
           return next
         })
-      })
-      .finally(() => {
-        setLoading(false)
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlistCopy])
@@ -141,25 +149,48 @@ export default function SongList({
       onDragLeave={stopProp}
     >
       <header className={css.header}>
-        <h3>
-          {loading ? (
-            <span>loading videos...</span>
-          ) : (
-            <span>Playlist &ndash; {songNumber} videos</span>
-          )}
-        </h3>
         {songNumber > 0 && (
-          <div className={css.playlistControls}>
-            <button onClick={onShuffle}>
-              <Shuffle size={26} />
-            </button>
-            <button onClick={onClearPlaylist}>
-              <Trash2 size={26} />
-            </button>
-            <button className={css.textButton} onClick={onGeneratePlaylistURL}>
-              Create Playlist URL to share
-            </button>
-          </div>
+          <>
+            <div className={css.playbackControls}>
+              <button
+                className={css.iconButton}
+                onClick={onPrevious}
+                title="Previous"
+                aria-label="Previous"
+              >
+                <SkipBack size={22} />
+              </button>
+              <button
+                className={css.iconButton}
+                onClick={onNext}
+                title="Next"
+                aria-label="Next"
+              >
+                <SkipForward size={22} />
+              </button>
+              <button onClick={onRemoveCurrent} title="Remove current video">
+                <X size={22} />
+                <span>remove video</span>
+              </button>
+            </div>
+            <div className={css.playlistControls}>
+              <button
+                className={css.iconButton}
+                onClick={onShuffle}
+                title="Shuffle"
+                aria-label="Shuffle"
+              >
+                <Shuffle size={22} />
+              </button>
+              <button onClick={onClearPlaylist}>
+                <Trash2 size={22} />
+                <span>clear</span>
+              </button>
+              <button className={css.textButton} onClick={onGeneratePlaylistURL}>
+                Save playlist
+              </button>
+            </div>
+          </>
         )}
       </header>
 
@@ -191,7 +222,7 @@ export default function SongList({
                         >
                           <GripVertical
                             className={css.dragHandleIcon}
-                            size={26}
+                            size={18}
                           />
                           <span className={css.dragHandleIndex}>{i + 1}</span>
                         </span>

@@ -91,23 +91,15 @@ export function usePlaylist() {
   )
 
   const playlistPrevious = useCallback(() => {
-    setPlaylist((currentPlaylist) => {
-      if (!currentPlaylist.length) return currentPlaylist
-      setPlaylistIndex((prev) => {
-        const newIndex = prev - 1
-        return newIndex < 0 ? currentPlaylist.length + newIndex : newIndex
-      })
-      return currentPlaylist
-    })
-  }, [])
+    if (!playlist.length) return
+    const newIndex = playlistIndex - 1
+    setPlaylistIndex(newIndex < 0 ? playlist.length - 1 : newIndex)
+  }, [playlist.length, playlistIndex])
 
   const playlistNext = useCallback(() => {
-    setPlaylist((currentPlaylist) => {
-      if (!currentPlaylist.length) return currentPlaylist
-      setPlaylistIndex((prev) => (prev + 1) % currentPlaylist.length)
-      return currentPlaylist
-    })
-  }, [])
+    if (!playlist.length) return
+    setPlaylistIndex((playlistIndex + 1) % playlist.length)
+  }, [playlist.length, playlistIndex])
 
   const playlistShuffle = useCallback(() => {
     setPlaylist((prev) => {

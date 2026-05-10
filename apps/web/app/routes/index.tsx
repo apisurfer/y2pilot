@@ -15,6 +15,10 @@ import { fetchPlaylist as fetchPlaylistApi, createPlaylist } from '~/lib/http'
 import {
   savePlaylist as savePlaylistToLS,
   getPlaylist as getPlaylistFromLS,
+  getPlaylistId as getPlaylistIdFromLS,
+  savePlaylistId as savePlaylistIdToLS,
+  clearPlaylistId as clearPlaylistIdFromLS,
+  clearPlaylist as clearPlaylistFromLS,
 } from '~/lib/localstorage'
 
 export const Route = createFileRoute('/')({
@@ -98,8 +102,15 @@ function App() {
   }, [playlist, playlistIndex])
 
   // Watch playlist/playlistIndex changes
+  const initialSaveSkippedRef = useRef(false)
   useEffect(() => {
     setCurrentVideoSlice()
+    // Skip the first run so the empty initial state doesn't overwrite the
+    // cached playlist before the mount-load effect has a chance to read it.
+    if (!initialSaveSkippedRef.current) {
+      initialSaveSkippedRef.current = true
+      return
+    }
     savePlaylistToLS(playlist, playlistIndex)
   }, [playlist, playlistIndex, setCurrentVideoSlice])
 
@@ -109,21 +120,35 @@ function App() {
     if (mountedRef.current) return
     mountedRef.current = true
 
-    const playlistId = getSearchParam(window.location.href, 'p')
-    if (playlistId) {
-      fetchPlaylistApi(playlistId)
+    const urlPlaylistId = getSearchParam(window.location.href, 'p')
+    const savedPlaylistId = getPlaylistIdFromLS()
+
+    if (urlPlaylistId) {
+      loadPlaylistFromServer(urlPlaylistId, { persistId: true })
+    } else if (savedPlaylistId) {
+      loadPlaylistFromServer(savedPlaylistId, { persistId: false })
+    } else {
+      loadPlaylistFromLocalStorage()
+    }
+
+    function loadPlaylistFromServer(
+      id: string,
+      { persistId }: { persistId: boolean },
+    ) {
+      fetchPlaylistApi(id)
         .then((response: { videoIds: string[] }) => {
-          const songlistObjects = response.videoIds.map((id: string) => ({
-            videoId: id,
+          const songlistObjects = response.videoIds.map((vid: string) => ({
+            videoId: vid,
           }))
           playlistAddSongs(songlistObjects)
           playlistSetIndex(0)
+          if (persistId) savePlaylistIdToLS(id)
         })
         .catch(() => {
+          // Saved ID is stale or unreachable; drop it and fall back to local cache.
+          clearPlaylistIdFromLS()
           loadPlaylistFromLocalStorage()
         })
-    } else {
-      loadPlaylistFromLocalStorage()
     }
 
     function loadPlaylistFromLocalStorage() {
@@ -385,6 +410,10 @@ function App() {
 
   function onConfirmPlaylistRemove() {
     playlistClear()
+    clearPlaylistFromLS()
+    const url = new URL(window.location.href)
+    url.searchParams.delete('p')
+    window.history.replaceState(null, '', url.toString())
     setShowPlaylistRemoveConfirmation(false)
   }
 
@@ -393,6 +422,7 @@ function App() {
     createPlaylist(videoIds)
       .then((playlistId: string) => {
         if (playlistId) {
+          savePlaylistIdToLS(playlistId)
           setPlaylistURL(`${window.location.origin}?p=${playlistId}`)
           setShowPlaylistShareModal(true)
         } else {
@@ -412,16 +442,11 @@ function App() {
       <AppHeader
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
-        onPrevious={playlistPrevious}
-        onNext={playlistNext}
-        onRemove={removeCurrentSong}
         activeStage={showStage}
-        hasPlayback={playlist.length > 0}
+        playlistCount={playlist.length}
       />
 
-      <div
-        className={`appMain ${showStage === stages.INTRO ? 'stretched' : ''}`}
-      >
+      <div className="appMain">
         {showPlaylistRemoveConfirmation && (
           <ConfirmModal
             onClose={() => setShowPlaylistRemoveConfirmation(false)}
@@ -476,7 +501,12 @@ function App() {
           )}
         </div>
 
-        <div style={{ display: showStage === stages.INTRO ? undefined : 'none' }}>
+        <div
+          style={{
+            display: showStage === stages.INTRO ? undefined : 'none',
+            height: '100%',
+          }}
+        >
           <HowTo onAddYtUrls={handleAddVideoIdsThroughInput} />
         </div>
         <div
@@ -493,6 +523,9 @@ function App() {
             onVideoInfoError={onVideoInfoError}
             onPlaylistOrderChange={onPlaylistOrderChange}
             onGeneratePlaylistURL={onGeneratePlaylistURL}
+            onPrevious={playlistPrevious}
+            onNext={playlistNext}
+            onRemoveCurrent={removeCurrentSong}
             notify={notify}
           />
         </div>

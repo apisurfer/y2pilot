@@ -8,6 +8,7 @@ const NAMESPACE = {
 const PLAYLIST_KEY = {
   SONG_LIST: 'songList',
   INDEX: 'index',
+  ID: 'id',
 }
 
 const oembedStore = store.namespace(NAMESPACE.OEMBED)
@@ -64,4 +65,20 @@ export function getPlaylist(): {
   const index = playlistStore.get(PLAYLIST_KEY.INDEX) ?? 0
 
   return { songList, index }
+}
+
+export function getPlaylistId(): string | null {
+  return playlistStore.get(PLAYLIST_KEY.ID) ?? null
+}
+
+export function savePlaylistId(playlistId: string) {
+  playlistStore.set(PLAYLIST_KEY.ID, playlistId)
+}
+
+export function clearPlaylistId() {
+  playlistStore.remove(PLAYLIST_KEY.ID)
+}
+
+export function clearPlaylist() {
+  playlistStore.clearAll()
 }

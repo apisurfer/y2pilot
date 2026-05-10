@@ -17,26 +17,19 @@ body {
   line-height: 1.45;
 }
 
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
 .appMain {
   position: relative;
+  flex: 1;
+  min-height: 0;
   margin: 0;
   padding: 0;
-  height: calc(100vh - 76px);
   overflow: hidden;
-}
-
-.appMain.stretched {
-  height: calc(100vh - 76px);
-}
-
-@media (min-width: 768px) {
-  .appMain {
-    height: 100vh;
-  }
-
-  .appMain.stretched {
-    height: 100vh;
-  }
 }
 
 .appPlayerWrap {
