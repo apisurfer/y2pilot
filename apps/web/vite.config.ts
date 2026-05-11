@@ -12,6 +12,12 @@ export default defineConfig({
   plugins: [
     tanstackStart({
       srcDirectory: 'app',
+      spa: {
+        enabled: true,
+        prerender: {
+          outputPath: '/index',
+        },
+      },
     }),
     viteReact(),
   ],
