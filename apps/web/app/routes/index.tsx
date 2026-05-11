@@ -286,12 +286,24 @@ function App() {
         return
       }
 
-      if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
-        playlistShuffle()
-        return
-      }
       if (e.key === '?') {
         handleShowHelp()
+        return
+      }
+      if (e.key === 'Escape') {
+        handleShowPlaying()
+        return
+      }
+
+      // Playlist-related shortcuts: only active once there's a playlist.
+      if (showStageRef.current === stages.INTRO) return
+
+      if (e.key === 'p' || e.key === 'P') {
+        handleShowPlaylist()
+        return
+      }
+      if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
+        playlistShuffle()
         return
       }
       if (e.key === 'ArrowLeft') {
@@ -300,10 +312,6 @@ function App() {
       }
       if (e.key === 'ArrowRight') {
         playlistNext()
-        return
-      }
-      if (e.key === 'Escape') {
-        handleShowPlaying()
         return
       }
       if (e.key === '1') {
@@ -316,10 +324,6 @@ function App() {
       }
       if (e.key === '3') {
         handleUpcomingSelected(3)
-        return
-      }
-      if (e.key === 'p' || e.key === 'P') {
-        handleShowPlaylist()
         return
       }
     }
@@ -354,12 +358,6 @@ function App() {
   }
 
   function onPlaybackError() {
-    if (videoSlice) {
-      playlistRemoveSong(videoSlice.videoId)
-    }
-  }
-
-  function removeCurrentSong() {
     if (videoSlice) {
       playlistRemoveSong(videoSlice.videoId)
     }
@@ -453,7 +451,7 @@ function App() {
             onConfirm={onConfirmPlaylistRemove}
           >
             <p>
-              Please confirm that you want to clear the complete playlist. All
+              Please confirm that you want to clear the playlist. All
               videos will be removed.
             </p>
           </ConfirmModal>
@@ -525,7 +523,7 @@ function App() {
             onGeneratePlaylistURL={onGeneratePlaylistURL}
             onPrevious={playlistPrevious}
             onNext={playlistNext}
-            onRemoveCurrent={removeCurrentSong}
+            onRemoveSong={playlistRemoveSong}
             notify={notify}
           />
         </div>

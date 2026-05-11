@@ -26,3 +26,54 @@
 .helpScreenContent {
   max-width: 800px;
 }
+
+.helpMain > :first-child,
+.helpShortcuts > :first-child {
+  margin-top: 0;
+}
+
+@media (min-width: 900px) {
+  .helpScreen {
+    padding: 2.5rem 3rem;
+  }
+
+  .helpScreenContent {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    column-gap: 5rem;
+    max-width: 1200px;
+    align-items: start;
+  }
+
+  .helpMain h2,
+  .helpShortcuts h2 {
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .helpMain > :first-child,
+  .helpShortcuts > :first-child {
+    margin-top: 0;
+  }
+
+  .helpMain p,
+  .helpMain li {
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  .helpMain li {
+    margin-bottom: 0.75rem;
+  }
+
+  .helpMain ul {
+    margin-bottom: 2rem;
+  }
+
+  .helpShortcuts .shortcutExplanation {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+}

@@ -17,7 +17,7 @@ export default function ConfirmModal({
       <div className={css.modalWrapper}>
         <div className={css.modalContainer} onClick={(e) => e.stopPropagation()}>
           <div className={css.modalHeader}>
-            <h3>Confirm your action</h3>
+            <h3>Confirm action</h3>
           </div>
 
           <div className={css.modalBody}>

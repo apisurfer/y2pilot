@@ -11,6 +11,7 @@ import {
   GripVertical,
   SkipBack,
   SkipForward,
+  Save,
   X,
 } from 'lucide-react'
 import { textElipsis } from '~/lib/string'
@@ -36,7 +37,7 @@ interface SongListProps {
   onGeneratePlaylistURL: () => void
   onPrevious: () => void
   onNext: () => void
-  onRemoveCurrent: () => void
+  onRemoveSong: (videoId: string) => void
   notify: (opts: { text: string; type?: string; duration?: number }) => void
 }
 
@@ -53,7 +54,7 @@ export default function SongList({
   onGeneratePlaylistURL,
   onPrevious,
   onNext,
-  onRemoveCurrent,
+  onRemoveSong,
   notify,
 }: SongListProps) {
   const [songInfo, setSongInfo] = useState<Record<string, SongInfo>>({})
@@ -168,11 +169,8 @@ export default function SongList({
               >
                 <SkipForward size={22} />
               </button>
-              <button onClick={onRemoveCurrent} title="Remove current video">
-                <X size={22} />
-                <span>remove video</span>
-              </button>
             </div>
+            <div className={css.headerDivider} aria-hidden="true" />
             <div className={css.playlistControls}>
               <button
                 className={css.iconButton}
@@ -182,12 +180,20 @@ export default function SongList({
               >
                 <Shuffle size={22} />
               </button>
-              <button onClick={onClearPlaylist}>
-                <Trash2 size={22} />
-                <span>clear</span>
+              <button
+                onClick={onGeneratePlaylistURL}
+                title="Save playlist"
+              >
+                <Save size={22} />
+                <span>Save</span>
               </button>
-              <button className={css.textButton} onClick={onGeneratePlaylistURL}>
-                Save playlist
+              <button
+                className={css.destructiveButton}
+                onClick={onClearPlaylist}
+                title="Clear playlist"
+              >
+                <Trash2 size={22} />
+                <span>Clear</span>
               </button>
             </div>
           </>
@@ -239,6 +245,17 @@ export default function SongList({
                               )
                             : song.videoId}
                         </span>
+                        <button
+                          className={css.songRemove}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onRemoveSong(song.videoId)
+                          }}
+                          title="Remove from playlist"
+                          aria-label="Remove from playlist"
+                        >
+                          <X size={16} />
+                        </button>
                       </li>
                     )}
                   </Draggable>
