@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "build": "wrangler deploy --dry-run --outdir=dist",
-    "deploy": "wrangler deploy",
+    "deploy": "wrangler deploy --env production",
     "format": "prettier --write '**/*.{ts,js,css,json,md}'"
   },
   "license": "MIT OR Apache-2.0",

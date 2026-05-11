@@ -3,10 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 workers_dev = true
 
-# For local dev with `wrangler dev`, IDs can be any placeholder string —
-# Miniflare emulates KV in-memory. Replace with real IDs before deploy:
-#   wrangler kv namespace create VIDEOS
-#   wrangler kv namespace create PLAYLISTS
+# Local dev (used by `wrangler dev` — Miniflare emulates KV in memory,
+# so these IDs can stay as placeholders).
 [[kv_namespaces]]
 binding = "VIDEOS"
 id = "your_videos_kv_namespace_id"
@@ -17,3 +15,20 @@ id = "your_playlists_kv_namespace_id"
 
 [dev]
 port = 8787
+
+# Production (used by `wrangler deploy --env production`).
+# Environments do not inherit bindings — redeclare them here.
+# Create real namespaces and paste their IDs below:
+#   wrangler kv namespace create VIDEOS --env production
+#   wrangler kv namespace create PLAYLISTS --env production
+[env.production]
+name = "y2pilot-worker"
+workers_dev = true
+
+[[env.production.kv_namespaces]]
+binding = "VIDEOS"
+id = "your_prod_videos_kv_namespace_id"
+
+[[env.production.kv_namespaces]]
+binding = "PLAYLISTS"
+id = "your_prod_playlists_kv_namespace_id"
