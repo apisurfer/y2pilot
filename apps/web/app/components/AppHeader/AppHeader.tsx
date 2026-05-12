@@ -18,7 +18,14 @@ export default function AppHeader({
   return (
     <div className={css.appHeader}>
       <div className={css.leftGroup}>
-        <a className={css.logo} href="/">
+        {/* Open in a new tab when a playlist is loaded so a click doesn't
+            wipe out the current (non-persisted) playlist via refresh. */}
+        <a
+          className={css.logo}
+          href="/"
+          target={playlistCount > 0 ? '_blank' : undefined}
+          rel={playlistCount > 0 ? 'noopener noreferrer' : undefined}
+        >
           <img src={pilotSvg} alt="Pilot" />
           <span>y2pilot</span>
         </a>

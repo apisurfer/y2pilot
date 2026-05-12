@@ -12,14 +12,6 @@ import { useNotify } from '~/components/Notifications'
 import { usePlaylist } from '~/hooks/usePlaylist'
 import { getYtVideoId, getYtUrls, getSearchParam } from '~/lib/string'
 import { fetchPlaylist as fetchPlaylistApi, createPlaylist } from '~/lib/http'
-import {
-  savePlaylist as savePlaylistToLS,
-  getPlaylist as getPlaylistFromLS,
-  getPlaylistId as getPlaylistIdFromLS,
-  savePlaylistId as savePlaylistIdToLS,
-  clearPlaylistId as clearPlaylistIdFromLS,
-  clearPlaylist as clearPlaylistFromLS,
-} from '~/lib/localstorage'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -106,63 +98,29 @@ function App() {
     }
   }, [playlist, playlistIndex])
 
-  // Watch playlist/playlistIndex changes
-  const initialSaveSkippedRef = useRef(false)
   useEffect(() => {
     setCurrentVideoSlice()
-    // Skip the first run so the empty initial state doesn't overwrite the
-    // cached playlist before the mount-load effect has a chance to read it.
-    if (!initialSaveSkippedRef.current) {
-      initialSaveSkippedRef.current = true
-      return
-    }
-    savePlaylistToLS(playlist, playlistIndex)
   }, [playlist, playlistIndex, setCurrentVideoSlice])
 
-  // --- Mount: Load playlist from URL param or localStorage ---
+  // --- Mount: Load playlist from URL param ---
   const mountedRef = useRef(false)
   useEffect(() => {
     if (mountedRef.current) return
     mountedRef.current = true
 
     const urlPlaylistId = getSearchParam(window.location.href, 'p')
-    const savedPlaylistId = getPlaylistIdFromLS()
+    if (!urlPlaylistId) return
 
-    if (urlPlaylistId) {
-      loadPlaylistFromServer(urlPlaylistId, { persistId: true })
-    } else if (savedPlaylistId) {
-      loadPlaylistFromServer(savedPlaylistId, { persistId: false })
-    } else {
-      loadPlaylistFromLocalStorage()
-    }
-
-    function loadPlaylistFromServer(
-      id: string,
-      { persistId }: { persistId: boolean },
-    ) {
-      fetchPlaylistApi(id)
-        .then((response: { videoIds: string[] }) => {
-          const songlistObjects = response.videoIds.map((vid: string) => ({
-            videoId: vid,
-          }))
-          playlistAddSongs(songlistObjects)
-          playlistSetIndex(0)
-          setBackendPlaylistLength(response.videoIds.length)
-          if (persistId) savePlaylistIdToLS(id)
-        })
-        .catch(() => {
-          // Saved ID is stale or unreachable; drop it and fall back to local cache.
-          clearPlaylistIdFromLS()
-          loadPlaylistFromLocalStorage()
-        })
-    }
-
-    function loadPlaylistFromLocalStorage() {
-      const { songList, index } = getPlaylistFromLS()
-      const songlistObjects = songList.map((videoId: string) => ({ videoId }))
-      playlistAddSongs(songlistObjects)
-      playlistSetIndex(index)
-    }
+    fetchPlaylistApi(urlPlaylistId).then(
+      (response: { videoIds: string[] }) => {
+        const songlistObjects = response.videoIds.map((vid: string) => ({
+          videoId: vid,
+        }))
+        playlistAddSongs(songlistObjects)
+        playlistSetIndex(0)
+        setBackendPlaylistLength(response.videoIds.length)
+      },
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -418,7 +376,6 @@ function App() {
 
   function onConfirmPlaylistRemove() {
     playlistClear()
-    clearPlaylistFromLS()
     setBackendPlaylistLength(null)
     const url = new URL(window.location.href)
     url.searchParams.delete('p')
@@ -431,7 +388,6 @@ function App() {
     createPlaylist(videoIds)
       .then((playlistId: string) => {
         if (playlistId) {
-          savePlaylistIdToLS(playlistId)
           setPlaylistURL(`${window.location.origin}?p=${playlistId}`)
           setShowPlaylistShareModal(true)
           setBackendPlaylistLength(videoIds.length)
