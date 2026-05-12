@@ -66,6 +66,11 @@ function App() {
     useState(false)
   const [showPlaylistShareModal, setShowPlaylistShareModal] = useState(false)
   const [playlistURL, setPlaylistURL] = useState('')
+  // Length of the playlist as it exists on the backend. null means no
+  // backend-backed playlist is currently open. Used to detect unsaved additions.
+  const [backendPlaylistLength, setBackendPlaylistLength] = useState<
+    number | null
+  >(null)
   const [disablePlayerPointerEvents, setDisablePlayerPointerEvents] =
     useState(false)
 
@@ -142,6 +147,7 @@ function App() {
           }))
           playlistAddSongs(songlistObjects)
           playlistSetIndex(0)
+          setBackendPlaylistLength(response.videoIds.length)
           if (persistId) savePlaylistIdToLS(id)
         })
         .catch(() => {
@@ -161,8 +167,12 @@ function App() {
   }, [])
 
   // --- Before unload warning ---
+  // Only warn when a backend-loaded playlist is open and the user has added
+  // videos to it without saving (current length exceeds the backend version).
+  const hasUnsavedAdditions =
+    backendPlaylistLength !== null && playlist.length > backendPlaylistLength
   useEffect(() => {
-    if (window.location.href.includes('http://localhost')) return
+    if (!hasUnsavedAdditions) return
 
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
@@ -172,7 +182,7 @@ function App() {
 
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [])
+  }, [hasUnsavedAdditions])
 
   // --- Page focus / visibility management ---
   useEffect(() => {
@@ -409,6 +419,7 @@ function App() {
   function onConfirmPlaylistRemove() {
     playlistClear()
     clearPlaylistFromLS()
+    setBackendPlaylistLength(null)
     const url = new URL(window.location.href)
     url.searchParams.delete('p')
     window.history.replaceState(null, '', url.toString())
@@ -423,6 +434,7 @@ function App() {
           savePlaylistIdToLS(playlistId)
           setPlaylistURL(`${window.location.origin}?p=${playlistId}`)
           setShowPlaylistShareModal(true)
+          setBackendPlaylistLength(videoIds.length)
         } else {
           throw new Error('No playlist ID')
         }
