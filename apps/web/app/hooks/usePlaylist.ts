@@ -41,33 +41,34 @@ export function usePlaylist() {
 
   const playlistAddSongs = useCallback(
     (songUrls: Song[] = []) => {
-      let addedCount = 0
+      const existingIds = new Set(playlist.map((s) => s.videoId))
+      const newSongs = uniqBy(songUrls, (s) => s.videoId).filter(
+        (s) => !existingIds.has(s.videoId),
+      )
       setPlaylist((prev) => {
-        const extendedPlaylist = prev.concat(songUrls)
-        const extendedPlaylistUnique = uniqBy(
-          extendedPlaylist,
-          (song) => song.videoId,
-        )
-        addedCount = extendedPlaylistUnique.length - prev.length
-        return extendedPlaylistUnique
+        const prevIds = new Set(prev.map((s) => s.videoId))
+        return prev.concat(newSongs.filter((s) => !prevIds.has(s.videoId)))
       })
-      return addedCount
+      return newSongs.length
     },
-    [],
+    [playlist],
   )
 
   const playlistRemoveSong = useCallback(
     (videoId: string) => {
-      setPlaylist((prev) => {
-        const newPlaylist = prev.filter((song) => song.videoId !== videoId)
-        const wasLastIndex = playlistIndex === prev.length - 1
-        if (wasLastIndex) {
-          setPlaylistIndex(0)
-        }
-        return newPlaylist
-      })
+      const removedIdx = playlist.findIndex((s) => s.videoId === videoId)
+      if (removedIdx === -1) return
+      setPlaylist((prev) => prev.filter((song) => song.videoId !== videoId))
+      if (removedIdx < playlistIndex) {
+        setPlaylistIndex(playlistIndex - 1)
+      } else if (
+        removedIdx === playlistIndex &&
+        playlistIndex === playlist.length - 1
+      ) {
+        setPlaylistIndex(0)
+      }
     },
-    [playlistIndex],
+    [playlist, playlistIndex],
   )
 
   const playlistClear = useCallback(() => {
@@ -77,17 +78,14 @@ export function usePlaylist() {
 
   const playlistSetIndex = useCallback(
     (index: number = 0) => {
-      setPlaylist((currentPlaylist) => {
-        if (!currentPlaylist.length) return currentPlaylist
-        if (index < 0) {
-          setPlaylistIndex(currentPlaylist.length + index)
-        } else {
-          setPlaylistIndex(index % currentPlaylist.length)
-        }
-        return currentPlaylist
-      })
+      if (!playlist.length) return
+      if (index < 0) {
+        setPlaylistIndex(playlist.length + index)
+      } else {
+        setPlaylistIndex(index % playlist.length)
+      }
     },
-    [],
+    [playlist.length],
   )
 
   const playlistPrevious = useCallback(() => {
@@ -102,37 +100,27 @@ export function usePlaylist() {
   }, [playlist.length, playlistIndex])
 
   const playlistShuffle = useCallback(() => {
-    setPlaylist((prev) => {
-      const shuffled = shuffleList([...prev])
-      setPlaylistIndex((prevIndex) => {
-        const currentVideoId = prev[prevIndex]?.videoId
-        if (currentVideoId) {
-          const newIdx = shuffled.findIndex(
-            (v) => v.videoId === currentVideoId,
-          )
-          if (newIdx > -1) return newIdx
-        }
-        return prevIndex
-      })
-      return shuffled
-    })
-  }, [])
+    if (!playlist.length) return
+    const currentVideoId = playlist[playlistIndex]?.videoId
+    const shuffled = shuffleList([...playlist])
+    const newIdx = currentVideoId
+      ? shuffled.findIndex((v) => v.videoId === currentVideoId)
+      : -1
+    setPlaylist(shuffled)
+    if (newIdx > -1) setPlaylistIndex(newIdx)
+  }, [playlist, playlistIndex])
 
-  const playlistChangeOrder = useCallback((newPlaylist: Song[]) => {
-    setPlaylist((prev) => {
-      setPlaylistIndex((prevIndex) => {
-        const currentVideoId = prev[prevIndex]?.videoId
-        if (currentVideoId) {
-          const newIdx = newPlaylist.findIndex(
-            (v) => v.videoId === currentVideoId,
-          )
-          if (newIdx > -1) return newIdx
-        }
-        return prevIndex
-      })
-      return [...newPlaylist]
-    })
-  }, [])
+  const playlistChangeOrder = useCallback(
+    (newPlaylist: Song[]) => {
+      const currentVideoId = playlist[playlistIndex]?.videoId
+      const newIdx = currentVideoId
+        ? newPlaylist.findIndex((v) => v.videoId === currentVideoId)
+        : -1
+      setPlaylist([...newPlaylist])
+      if (newIdx > -1) setPlaylistIndex(newIdx)
+    },
+    [playlist, playlistIndex],
+  )
 
   const playlistGetCurrentSong = useCallback(() => {
     return playlist[playlistIndex]
