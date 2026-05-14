@@ -27,10 +27,6 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-.playlistControls {
-  margin-left: auto;
-}
-
 .header h2 span {
   font-size: 36px;
 }
@@ -73,15 +69,13 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.playbackControls,
-.playlistControls {
+.playbackControls {
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-.playbackControls button,
-.playlistControls button {
+.playbackControls button {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -96,22 +90,13 @@
   border-radius: 6px;
 }
 
-.playbackControls button:hover,
-.playlistControls button:hover {
+.playbackControls button:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
 }
 
 .iconButton {
   gap: 0 !important;
-}
-
-.playlistControls .destructiveButton {
-  color: #a87575;
-}
-.playlistControls .destructiveButton:hover {
-  color: #fff;
-  background: rgba(220, 80, 80, 0.18);
 }
 
 .songThumb {

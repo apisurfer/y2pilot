@@ -16,6 +16,15 @@
   gap: 0.5rem;
 }
 
+.playlistGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 999px;
+}
+
 .logo {
   display: inline-flex;
   align-items: center;
@@ -51,4 +60,18 @@
 .pillButton:hover,
 .pillButton.active {
   background: rgba(255, 255, 255, 0.22);
+}
+
+.pillButtonSmall {
+  padding: 4px 10px;
+  font-size: 0.85em;
+  gap: 0.3rem;
+}
+
+.pillButton.destructiveButton {
+  color: #e8b0b0;
+}
+.pillButton.destructiveButton:hover {
+  background: rgba(220, 80, 80, 0.28);
+  color: #fff;
 }

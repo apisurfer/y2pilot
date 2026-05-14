@@ -408,6 +408,8 @@ function App() {
       <AppHeader
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
+        onSavePlaylist={onGeneratePlaylistURL}
+        onClearPlaylist={onClearPlaylist}
         activeStage={showStage}
         playlistCount={playlist.length}
       />
@@ -484,11 +486,9 @@ function App() {
             playlist={playlist}
             playlistIndex={playlistIndex}
             onShuffle={onPlaylistShuffle}
-            onClearPlaylist={onClearPlaylist}
             onSelectedSongIndex={(i) => playlistSetIndex(i)}
             onVideoInfoError={onVideoInfoError}
             onPlaylistOrderChange={onPlaylistOrderChange}
-            onGeneratePlaylistURL={onGeneratePlaylistURL}
             onPrevious={playlistPrevious}
             onNext={playlistNext}
             onRemoveSong={playlistRemoveSong}

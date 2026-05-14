@@ -7,11 +7,9 @@ import {
 } from '@hello-pangea/dnd'
 import {
   Shuffle,
-  Trash2,
   GripVertical,
   SkipBack,
   SkipForward,
-  Save,
   X,
 } from 'lucide-react'
 import { textElipsis } from '~/lib/string'
@@ -30,11 +28,9 @@ interface SongListProps {
   playlist: Song[]
   playlistIndex: number
   onShuffle: () => void
-  onClearPlaylist: () => void
   onSelectedSongIndex: (index: number) => void
   onVideoInfoError: (videoId: string) => void
   onPlaylistOrderChange: (newPlaylist: Song[]) => void
-  onGeneratePlaylistURL: () => void
   onPrevious: () => void
   onNext: () => void
   onRemoveSong: (videoId: string) => void
@@ -47,11 +43,9 @@ export default function SongList({
   playlist,
   playlistIndex,
   onShuffle,
-  onClearPlaylist,
   onSelectedSongIndex,
   onVideoInfoError,
   onPlaylistOrderChange,
-  onGeneratePlaylistURL,
   onPrevious,
   onNext,
   onRemoveSong,
@@ -169,9 +163,7 @@ export default function SongList({
               >
                 <SkipForward size={22} />
               </button>
-            </div>
-            <div className={css.headerDivider} aria-hidden="true" />
-            <div className={css.playlistControls}>
+              <div className={css.headerDivider} aria-hidden="true" />
               <button
                 className={css.iconButton}
                 onClick={onShuffle}
@@ -179,21 +171,6 @@ export default function SongList({
                 aria-label="Shuffle"
               >
                 <Shuffle size={22} />
-              </button>
-              <button
-                onClick={onGeneratePlaylistURL}
-                title="Save playlist"
-              >
-                <Save size={22} />
-                <span>Save</span>
-              </button>
-              <button
-                className={css.destructiveButton}
-                onClick={onClearPlaylist}
-                title="Clear playlist"
-              >
-                <Trash2 size={22} />
-                <span>Clear</span>
               </button>
             </div>
           </>

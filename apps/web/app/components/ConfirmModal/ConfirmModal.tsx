@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import css from './ConfirmModal.module.css'
 
 interface ConfirmModalProps {
@@ -12,10 +12,30 @@ export default function ConfirmModal({
   onClose,
   onConfirm,
 }: ConfirmModalProps) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopImmediatePropagation()
+        onClose()
+      }
+    }
+    // Capture phase so we run before any bubble-phase document handlers
+    // (e.g. the app-level Escape shortcut) and can suppress them.
+    document.addEventListener('keydown', onKey, true)
+    document.addEventListener('keyup', onKey, true)
+    return () => {
+      document.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('keyup', onKey, true)
+    }
+  }, [onClose])
+
   return (
     <div className={css.modalMask} onClick={onClose}>
       <div className={css.modalWrapper}>
-        <div className={css.modalContainer} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={css.modalContainer}
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className={css.modalHeader}>
             <h3>Confirm action</h3>
           </div>
@@ -25,10 +45,10 @@ export default function ConfirmModal({
           </div>
 
           <div className={css.modalFooter}>
-            <button className={css.modalButtonLeft} onClick={onClose}>
-              Close
+            <button className={css.cancelButton} onClick={onClose}>
+              Cancel
             </button>
-            <button className={css.modalButtonRight} onClick={onConfirm}>
+            <button className={css.confirmButton} onClick={onConfirm}>
               Confirm
             </button>
           </div>

@@ -1,4 +1,4 @@
-import { HelpCircle, ListMusic } from 'lucide-react'
+import { HelpCircle, ListMusic, Save, Trash2 } from 'lucide-react'
 import pilotSvg from '~/assets/pilot.svg'
 import css from './AppHeader.module.css'
 
@@ -7,6 +7,8 @@ interface AppHeaderProps {
   playlistCount: number
   onToggleHelp: () => void
   onTogglePlaylist: () => void
+  onSavePlaylist: () => void
+  onClearPlaylist: () => void
 }
 
 export default function AppHeader({
@@ -14,7 +16,10 @@ export default function AppHeader({
   playlistCount,
   onToggleHelp,
   onTogglePlaylist,
+  onSavePlaylist,
+  onClearPlaylist,
 }: AppHeaderProps) {
+  const hasPlaylist = playlistCount > 0
   return (
     <div className={css.appHeader}>
       <div className={css.leftGroup}>
@@ -23,21 +28,47 @@ export default function AppHeader({
         <a
           className={css.logo}
           href="/"
-          target={playlistCount > 0 ? '_blank' : undefined}
-          rel={playlistCount > 0 ? 'noopener noreferrer' : undefined}
+          target={hasPlaylist ? '_blank' : undefined}
+          rel={hasPlaylist ? 'noopener noreferrer' : undefined}
         >
           <img src={pilotSvg} alt="Pilot" />
           <span>y2pilot</span>
         </a>
-        {playlistCount > 0 && (
-          <button
-            type="button"
-            className={`${css.pillButton} ${activeStage === 'playlist' ? css.active : ''}`}
-            onClick={onTogglePlaylist}
-          >
-            <ListMusic size={18} />
-            <span>playlist ({playlistCount})</span>
-          </button>
+        {hasPlaylist && (
+          <div className={css.playlistGroup}>
+            <button
+              type="button"
+              className={`${css.pillButton} ${activeStage === 'playlist' ? css.active : ''}`}
+              onClick={onTogglePlaylist}
+            >
+              <ListMusic size={18} />
+              <span>
+                {playlistCount} video{playlistCount === 1 ? '' : 's'}
+              </span>
+            </button>
+            {activeStage === 'playlist' && (
+              <>
+                <button
+                  type="button"
+                  className={`${css.pillButton} ${css.pillButtonSmall}`}
+                  onClick={onSavePlaylist}
+                  title="Save playlist"
+                >
+                  <Save size={14} />
+                  <span>Save playlist</span>
+                </button>
+                <button
+                  type="button"
+                  className={`${css.pillButton} ${css.pillButtonSmall} ${css.destructiveButton}`}
+                  onClick={onClearPlaylist}
+                  title="Clear playlist"
+                >
+                  <Trash2 size={14} />
+                  <span>Clear playlist</span>
+                </button>
+              </>
+            )}
+          </div>
         )}
       </div>
       <div className={css.rightGroup}>
