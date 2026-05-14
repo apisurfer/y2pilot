@@ -46,28 +46,24 @@ export default function AppHeader({
                 {playlistCount} video{playlistCount === 1 ? '' : 's'}
               </span>
             </button>
-            {activeStage === 'playlist' && (
-              <>
-                <button
-                  type="button"
-                  className={`${css.pillButton} ${css.pillButtonSmall}`}
-                  onClick={onSavePlaylist}
-                  title="Save playlist"
-                >
-                  <Save size={14} />
-                  <span>Save playlist</span>
-                </button>
-                <button
-                  type="button"
-                  className={`${css.pillButton} ${css.pillButtonSmall} ${css.destructiveButton}`}
-                  onClick={onClearPlaylist}
-                  title="Clear playlist"
-                >
-                  <Trash2 size={14} />
-                  <span>Clear playlist</span>
-                </button>
-              </>
-            )}
+            <button
+              type="button"
+              className={`${css.pillButton} ${css.pillButtonSmall}`}
+              onClick={onSavePlaylist}
+              title="Save playlist"
+            >
+              <Save size={14} />
+              <span>Save playlist</span>
+            </button>
+            <button
+              type="button"
+              className={`${css.pillButton} ${css.pillButtonSmall} ${css.destructiveButton}`}
+              onClick={onClearPlaylist}
+              title="Clear playlist"
+            >
+              <Trash2 size={14} />
+              <span>Clear playlist</span>
+            </button>
           </div>
         )}
       </div>
