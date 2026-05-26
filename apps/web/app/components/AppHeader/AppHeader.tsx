@@ -5,6 +5,8 @@ import css from './AppHeader.module.css'
 interface AppHeaderProps {
   activeStage: string
   playlistCount: number
+  isPlaylistDirty: boolean
+  isSavingPlaylist: boolean
   onToggleHelp: () => void
   onTogglePlaylist: () => void
   onSavePlaylist: () => void
@@ -14,12 +16,20 @@ interface AppHeaderProps {
 export default function AppHeader({
   activeStage,
   playlistCount,
+  isPlaylistDirty,
+  isSavingPlaylist,
   onToggleHelp,
   onTogglePlaylist,
   onSavePlaylist,
   onClearPlaylist,
 }: AppHeaderProps) {
   const hasPlaylist = playlistCount > 0
+  const showSavePulse = isPlaylistDirty && !isSavingPlaylist
+  const saveTitle = isSavingPlaylist
+    ? 'Saving…'
+    : isPlaylistDirty
+      ? "Save as a new playlist — current changes haven't been persisted yet"
+      : 'Playlist is up to date'
   return (
     <div className={css.appHeader}>
       <div className={css.leftGroup}>
@@ -48,12 +58,13 @@ export default function AppHeader({
             </button>
             <button
               type="button"
-              className={`${css.pillButton} ${css.pillButtonSmall}`}
+              className={`${css.pillButton} ${css.pillButtonSmall} ${css.saveButton} ${showSavePulse ? css.pulse : ''}`}
               onClick={onSavePlaylist}
-              title="Save playlist"
+              disabled={!isPlaylistDirty || isSavingPlaylist}
+              title={saveTitle}
             >
               <Save size={14} />
-              <span>Save playlist</span>
+              <span>{isSavingPlaylist ? 'Saving…' : 'Save playlist'}</span>
             </button>
             <button
               type="button"

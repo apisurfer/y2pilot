@@ -75,3 +75,38 @@
   background: rgba(220, 80, 80, 0.28);
   color: #fff;
 }
+
+.pillButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.pillButton:disabled:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.saveButton.pulse {
+  background: rgba(122, 200, 140, 0.28);
+  color: #d6f5dd;
+  animation: savePulse 1.8s ease-in-out infinite;
+}
+.saveButton.pulse:hover {
+  background: rgba(122, 200, 140, 0.42);
+  color: #fff;
+  animation: none;
+}
+
+@keyframes savePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(122, 200, 140, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(122, 200, 140, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saveButton.pulse {
+    animation: none;
+  }
+}

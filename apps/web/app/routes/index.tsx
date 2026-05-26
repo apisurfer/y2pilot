@@ -7,7 +7,6 @@ import SongList from '~/components/SongList/SongList'
 import HowTo from '~/components/HowTo/HowTo'
 import HelpScreen from '~/components/HelpScreen/HelpScreen'
 import ConfirmModal from '~/components/ConfirmModal/ConfirmModal'
-import SharePlaylistModal from '~/components/SharePlaylistModal/SharePlaylistModal'
 import { useNotify } from '~/components/Notifications'
 import { usePlaylist } from '~/hooks/usePlaylist'
 import { getYtVideoId, getYtUrls, getSearchParam } from '~/lib/string'
@@ -56,13 +55,11 @@ function App() {
   const [showStage, setShowStage] = useState<Stage>(stages.INTRO)
   const [showPlaylistRemoveConfirmation, setShowPlaylistRemoveConfirmation] =
     useState(false)
-  const [showPlaylistShareModal, setShowPlaylistShareModal] = useState(false)
-  const [playlistURL, setPlaylistURL] = useState('')
-  // Length of the playlist as it exists on the backend. null means no
-  // backend-backed playlist is currently open. Used to detect unsaved additions.
-  const [backendPlaylistLength, setBackendPlaylistLength] = useState<
-    number | null
-  >(null)
+  // VideoIds of the playlist as last persisted on the backend. null means no
+  // backend-backed playlist exists yet for this session. Compared against the
+  // current playlist to detect unsaved changes (add/remove/reorder).
+  const [backendVideoIds, setBackendVideoIds] = useState<string[] | null>(null)
+  const [isSavingPlaylist, setIsSavingPlaylist] = useState(false)
   const [disablePlayerPointerEvents, setDisablePlayerPointerEvents] =
     useState(false)
 
@@ -102,6 +99,24 @@ function App() {
     setCurrentVideoSlice()
   }, [playlist, playlistIndex, setCurrentVideoSlice])
 
+  // --- Dirty tracking ---
+  // The playlist is "dirty" when the local set/order of videoIds differs from
+  // what's been persisted to the backend. While the initial auto-create POST is
+  // in flight (backendVideoIds still null with a non-empty playlist), nothing
+  // is persisted yet either — treat that as dirty so we warn on unload.
+  const currentVideoIds = playlist.map((s) => s.videoId)
+  const isPlaylistDirty =
+    playlist.length > 0 &&
+    (backendVideoIds === null ||
+      backendVideoIds.length !== currentVideoIds.length ||
+      backendVideoIds.some((id, i) => id !== currentVideoIds[i]))
+
+  // Generation counter: any in-flight POST that resolves after a clear/reset
+  // should not retro-actively re-populate backendVideoIds or the URL.
+  const persistGenRef = useRef(0)
+  const autoCreateInFlightRef = useRef(false)
+  const loadingFromUrlRef = useRef(false)
+
   // --- Mount: Load playlist from URL param ---
   const mountedRef = useRef(false)
   useEffect(() => {
@@ -111,26 +126,63 @@ function App() {
     const urlPlaylistId = getSearchParam(window.location.href, 'p')
     if (!urlPlaylistId) return
 
-    fetchPlaylistApi(urlPlaylistId).then(
-      (response: { videoIds: string[] }) => {
+    loadingFromUrlRef.current = true
+    const gen = persistGenRef.current
+    fetchPlaylistApi(urlPlaylistId)
+      .then((response: { videoIds: string[] }) => {
+        if (gen !== persistGenRef.current) return
         const songlistObjects = response.videoIds.map((vid: string) => ({
           videoId: vid,
         }))
         playlistAddSongs(songlistObjects)
         playlistSetIndex(0)
-        setBackendPlaylistLength(response.videoIds.length)
-      },
-    )
+        setBackendVideoIds(response.videoIds)
+      })
+      .finally(() => {
+        loadingFromUrlRef.current = false
+      })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // --- Before unload warning ---
-  // Only warn when a backend-loaded playlist is open and the user has added
-  // videos to it without saving (current length exceeds the backend version).
-  const hasUnsavedAdditions =
-    backendPlaylistLength !== null && playlist.length > backendPlaylistLength
+  // --- Auto-create a backend playlist as soon as a video is added ---
+  // Fires once when the local playlist first becomes non-empty without a
+  // backend-backed playlist. Subsequent edits become "dirty" against the
+  // snapshot and require an explicit Save.
   useEffect(() => {
-    if (!hasUnsavedAdditions) return
+    if (playlist.length === 0) return
+    if (backendVideoIds !== null) return
+    if (loadingFromUrlRef.current) return
+    if (autoCreateInFlightRef.current) return
+
+    autoCreateInFlightRef.current = true
+    setIsSavingPlaylist(true)
+    const snapshot = playlist.map((s) => s.videoId)
+    const gen = persistGenRef.current
+    createPlaylist(snapshot)
+      .then((playlistId: string | undefined) => {
+        if (gen !== persistGenRef.current) return
+        if (!playlistId) throw new Error('No playlist ID')
+        setBackendVideoIds(snapshot)
+        const url = new URL(window.location.href)
+        url.searchParams.set('p', playlistId)
+        window.history.replaceState(null, '', url.toString())
+      })
+      .catch(() => {
+        notify({
+          text: 'Failed to create a shareable playlist. You can try again with Save.',
+          type: 'error',
+        })
+      })
+      .finally(() => {
+        autoCreateInFlightRef.current = false
+        setIsSavingPlaylist(false)
+      })
+  }, [playlist, backendVideoIds, notify])
+
+  // --- Before unload warning ---
+  // Warn whenever local state has unsaved changes against the backend.
+  useEffect(() => {
+    if (!isPlaylistDirty) return
 
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
@@ -140,7 +192,7 @@ function App() {
 
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [hasUnsavedAdditions])
+  }, [isPlaylistDirty])
 
   // --- Page focus / visibility management ---
   useEffect(() => {
@@ -375,31 +427,38 @@ function App() {
   }
 
   function onConfirmPlaylistRemove() {
+    persistGenRef.current += 1
     playlistClear()
-    setBackendPlaylistLength(null)
+    setBackendVideoIds(null)
     const url = new URL(window.location.href)
     url.searchParams.delete('p')
     window.history.replaceState(null, '', url.toString())
     setShowPlaylistRemoveConfirmation(false)
   }
 
-  function onGeneratePlaylistURL() {
-    const videoIds = playlist.map((video) => video.videoId)
-    createPlaylist(videoIds)
-      .then((playlistId: string) => {
-        if (playlistId) {
-          setPlaylistURL(`${window.location.origin}?p=${playlistId}`)
-          setShowPlaylistShareModal(true)
-          setBackendPlaylistLength(videoIds.length)
-        } else {
-          throw new Error('No playlist ID')
-        }
+  function onSavePlaylist() {
+    if (!playlist.length || isSavingPlaylist) return
+    const snapshot = playlist.map((v) => v.videoId)
+    const gen = persistGenRef.current
+    setIsSavingPlaylist(true)
+    createPlaylist(snapshot)
+      .then((playlistId: string | undefined) => {
+        if (gen !== persistGenRef.current) return
+        if (!playlistId) throw new Error('No playlist ID')
+        setBackendVideoIds(snapshot)
+        const url = new URL(window.location.href)
+        url.searchParams.set('p', playlistId)
+        window.history.replaceState(null, '', url.toString())
+        notify({ text: 'New playlist saved. Share URL updated.' })
       })
       .catch(() => {
         notify({
-          text: 'Failed to create playlist URL. Please try again.',
+          text: 'Failed to save playlist. Please try again.',
           type: 'error',
         })
+      })
+      .finally(() => {
+        setIsSavingPlaylist(false)
       })
   }
 
@@ -408,10 +467,12 @@ function App() {
       <AppHeader
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
-        onSavePlaylist={onGeneratePlaylistURL}
+        onSavePlaylist={onSavePlaylist}
         onClearPlaylist={onClearPlaylist}
         activeStage={showStage}
         playlistCount={playlist.length}
+        isPlaylistDirty={isPlaylistDirty}
+        isSavingPlaylist={isSavingPlaylist}
       />
 
       <div className="appMain">
@@ -425,19 +486,6 @@ function App() {
               videos will be removed.
             </p>
           </ConfirmModal>
-        )}
-
-        {showPlaylistShareModal && (
-          <SharePlaylistModal
-            onClose={() => {
-              setPlaylistURL('')
-              setShowPlaylistShareModal(false)
-            }}
-          >
-            <p>
-              Your playlist URL is: <a href={playlistURL}>{playlistURL}</a>
-            </p>
-          </SharePlaylistModal>
         )}
 
         <DropArea
