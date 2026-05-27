@@ -1,4 +1,4 @@
-import { HelpCircle, ListMusic, Save, Trash2 } from 'lucide-react'
+import { HelpCircle, ListMusic, Save } from 'lucide-react'
 import pilotSvg from '~/assets/pilot.svg'
 import css from './AppHeader.module.css'
 
@@ -10,7 +10,6 @@ interface AppHeaderProps {
   onToggleHelp: () => void
   onTogglePlaylist: () => void
   onSavePlaylist: () => void
-  onClearPlaylist: () => void
 }
 
 export default function AppHeader({
@@ -21,7 +20,6 @@ export default function AppHeader({
   onToggleHelp,
   onTogglePlaylist,
   onSavePlaylist,
-  onClearPlaylist,
 }: AppHeaderProps) {
   const hasPlaylist = playlistCount > 0
   const showSavePulse = isPlaylistDirty && !isSavingPlaylist
@@ -65,15 +63,6 @@ export default function AppHeader({
             >
               <Save size={14} />
               <span>{isSavingPlaylist ? 'Saving…' : 'Save playlist'}</span>
-            </button>
-            <button
-              type="button"
-              className={`${css.pillButton} ${css.pillButtonSmall} ${css.destructiveButton}`}
-              onClick={onClearPlaylist}
-              title="Clear playlist"
-            >
-              <Trash2 size={14} />
-              <span>Clear playlist</span>
             </button>
           </div>
         )}

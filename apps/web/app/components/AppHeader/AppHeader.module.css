@@ -68,14 +68,6 @@
   gap: 0.3rem;
 }
 
-.pillButton.destructiveButton {
-  color: #e8b0b0;
-}
-.pillButton.destructiveButton:hover {
-  background: rgba(220, 80, 80, 0.28);
-  color: #fff;
-}
-
 .pillButton:disabled {
   cursor: default;
   opacity: 0.45;

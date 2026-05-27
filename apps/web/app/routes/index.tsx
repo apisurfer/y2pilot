@@ -6,7 +6,6 @@ import DropArea from '~/components/DropArea/DropArea'
 import SongList from '~/components/SongList/SongList'
 import HowTo from '~/components/HowTo/HowTo'
 import HelpScreen from '~/components/HelpScreen/HelpScreen'
-import ConfirmModal from '~/components/ConfirmModal/ConfirmModal'
 import { useNotify } from '~/components/Notifications'
 import { usePlaylist } from '~/hooks/usePlaylist'
 import { getYtVideoId, getYtUrls, getSearchParam } from '~/lib/string'
@@ -40,7 +39,6 @@ function App() {
     playlistIndex,
     playlistAddSongs,
     playlistRemoveSong,
-    playlistClear,
     playlistSetIndex,
     playlistPrevious,
     playlistNext,
@@ -53,8 +51,6 @@ function App() {
   const [videoSlice, setVideoSlice] = useState<VideoSlice | null>(null)
   const [dropMode, setDropMode] = useState(false)
   const [showStage, setShowStage] = useState<Stage>(stages.INTRO)
-  const [showPlaylistRemoveConfirmation, setShowPlaylistRemoveConfirmation] =
-    useState(false)
   // VideoIds of the playlist as last persisted on the backend. null means no
   // backend-backed playlist exists yet for this session. Compared against the
   // current playlist to detect unsaved changes (add/remove/reorder).
@@ -422,20 +418,6 @@ function App() {
     playlistShuffle()
   }
 
-  function onClearPlaylist() {
-    setShowPlaylistRemoveConfirmation(true)
-  }
-
-  function onConfirmPlaylistRemove() {
-    persistGenRef.current += 1
-    playlistClear()
-    setBackendVideoIds(null)
-    const url = new URL(window.location.href)
-    url.searchParams.delete('p')
-    window.history.replaceState(null, '', url.toString())
-    setShowPlaylistRemoveConfirmation(false)
-  }
-
   function onSavePlaylist() {
     if (!playlist.length || isSavingPlaylist) return
     const snapshot = playlist.map((v) => v.videoId)
@@ -468,7 +450,6 @@ function App() {
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
         onSavePlaylist={onSavePlaylist}
-        onClearPlaylist={onClearPlaylist}
         activeStage={showStage}
         playlistCount={playlist.length}
         isPlaylistDirty={isPlaylistDirty}
@@ -476,18 +457,6 @@ function App() {
       />
 
       <div className="appMain">
-        {showPlaylistRemoveConfirmation && (
-          <ConfirmModal
-            onClose={() => setShowPlaylistRemoveConfirmation(false)}
-            onConfirm={onConfirmPlaylistRemove}
-          >
-            <p>
-              Please confirm that you want to clear the playlist. All
-              videos will be removed.
-            </p>
-          </ConfirmModal>
-        )}
-
         <DropArea
           onDropMode={handleDropModeChange}
           onDroppedSongs={handleDroppedSongs}
