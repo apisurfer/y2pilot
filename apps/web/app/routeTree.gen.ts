@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PPlaylistIdRouteImport } from './routes/p.$playlistId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PPlaylistIdRoute = PPlaylistIdRouteImport.update({
+  id: '/p/$playlistId',
+  path: '/p/$playlistId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/p/$playlistId': typeof PPlaylistIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/p/$playlistId': typeof PPlaylistIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/p/$playlistId': typeof PPlaylistIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/p/$playlistId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/p/$playlistId'
+  id: '__root__' | '/' | '/p/$playlistId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PPlaylistIdRoute: typeof PPlaylistIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$playlistId': {
+      id: '/p/$playlistId'
+      path: '/p/$playlistId'
+      fullPath: '/p/$playlistId'
+      preLoaderRoute: typeof PPlaylistIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PPlaylistIdRoute: PPlaylistIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
