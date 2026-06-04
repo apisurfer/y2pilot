@@ -7,6 +7,10 @@
     "dev": "wrangler dev",
     "build": "wrangler deploy --dry-run --outdir=dist",
     "deploy": "wrangler deploy --env production",
+    "db:migrate:local": "wrangler d1 migrations apply y2pilot-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply y2pilot-db --env production --remote",
+    "db:seed:local": "wrangler d1 execute y2pilot-db --local --file=./migrations/seed.sql",
+    "db:seed:remote": "wrangler d1 execute y2pilot-db --env production --remote --file=./migrations/seed.sql",
     "format": "prettier --write '**/*.{ts,js,css,json,md}'"
   },
   "license": "MIT OR Apache-2.0",

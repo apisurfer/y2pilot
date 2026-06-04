@@ -38,7 +38,7 @@ export async function getOembedBatch(req: FixedIttyRequest, env: Env): Promise<R
     return new Response(JSON.stringify({ statusCode: 400, message: "Too many videos. Limit is 200." }), getResponseConf(400))
   }
 
-  const ytVideods = videoIds.map(id => getVideoId(id)).filter(Boolean)
+  const ytVideods = videoIds.map(id => getVideoId(id)).filter((id): id is string => Boolean(id))
   const requests = ytVideods.map(id => limit(async () => {
     try {
       const data = await fetchOembedInfo(env, id)

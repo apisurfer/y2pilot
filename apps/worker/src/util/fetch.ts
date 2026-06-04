@@ -1,4 +1,4 @@
-import {getVideo as kvGetVideo, putVideo as kvPutVideo} from '../service/kv'
+import {getVideo as dbGetVideo, putVideo as dbPutVideo} from '../service/d1'
 import type {Env} from '../types'
 
 interface YtOembed {
@@ -33,7 +33,7 @@ export async function fetchOembedInfo(env: Env, ytVideoId: string) : Promise<YtO
     throw new Error('Bad request - no video ID recognised')
   }
 
-  const cachedVal = await kvGetVideo(env, ytVideoId)
+  const cachedVal = await dbGetVideo(env, ytVideoId)
 
   if (cachedVal) {
     return cachedVal
@@ -67,7 +67,7 @@ export async function fetchOembedInfo(env: Env, ytVideoId: string) : Promise<YtO
     thumbnailUrl: oembed.thumbnail_url,
   }
 
-  await kvPutVideo(env, ytVideoId, oembedLight)
+  await dbPutVideo(env, ytVideoId, oembedLight)
 
   return oembedLight
 }

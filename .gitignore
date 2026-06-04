@@ -27,3 +27,7 @@ pnpm-debug.log*
 # Wrangler
 .wrangler
 wrangler.toml
+
+# Database
+db-bup
+apps/worker/migrations/seed.sql

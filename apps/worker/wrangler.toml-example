@@ -3,32 +3,25 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 workers_dev = true
 
-# Local dev (used by `wrangler dev` — Miniflare emulates KV in memory,
-# so these IDs can stay as placeholders).
-[[kv_namespaces]]
-binding = "VIDEOS"
-id = "your_videos_kv_namespace_id"
-
-[[kv_namespaces]]
-binding = "PLAYLISTS"
-id = "your_playlists_kv_namespace_id"
+# Local dev (used by `wrangler dev` — Miniflare emulates D1 with a local
+# SQLite file, so database_id can stay a placeholder).
+[[d1_databases]]
+binding = "DB"
+database_name = "y2pilot-db"
+database_id = "local"
 
 [dev]
 port = 8787
 
 # Production (used by `wrangler deploy --env production`).
 # Environments do not inherit bindings — redeclare them here.
-# Create real namespaces and paste their IDs below:
-#   wrangler kv namespace create VIDEOS --env production
-#   wrangler kv namespace create PLAYLISTS --env production
+# Create the database and paste its id below:
+#   wrangler d1 create y2pilot-db
 [env.production]
 name = "y2pilot-worker"
 workers_dev = true
 
-[[env.production.kv_namespaces]]
-binding = "VIDEOS"
-id = "your_prod_videos_kv_namespace_id"
-
-[[env.production.kv_namespaces]]
-binding = "PLAYLISTS"
-id = "your_prod_playlists_kv_namespace_id"
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "y2pilot-db"
+database_id = "your_prod_d1_database_id"
