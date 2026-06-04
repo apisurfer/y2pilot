@@ -652,6 +652,7 @@ function App() {
         onCopyPlaylist={onCopyPlaylist}
         activeStage={showStage}
         playlistCount={playlist.length}
+        playlistName={playlistName}
         isOwner={!isForeign}
         isPlaylistDirty={isPlaylistDirty}
         isSavingPlaylist={isSavingPlaylist}

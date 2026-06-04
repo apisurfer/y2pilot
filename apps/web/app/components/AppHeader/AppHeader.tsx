@@ -5,6 +5,7 @@ import css from './AppHeader.module.css'
 interface AppHeaderProps {
   activeStage: string
   playlistCount: number
+  playlistName: string
   isOwner: boolean
   isPlaylistDirty: boolean
   isSavingPlaylist: boolean
@@ -17,6 +18,7 @@ interface AppHeaderProps {
 export default function AppHeader({
   activeStage,
   playlistCount,
+  playlistName,
   isOwner,
   isPlaylistDirty,
   isSavingPlaylist,
@@ -26,6 +28,7 @@ export default function AppHeader({
   onCopyPlaylist,
 }: AppHeaderProps) {
   const hasPlaylist = playlistCount > 0
+  const trimmedName = playlistName.trim()
   // Owners auto-save, so the pill is just a status indicator (clicking forces a
   // save now). It pulses while there are changes still waiting to be persisted.
   const showSavePulse = isPlaylistDirty && !isSavingPlaylist
@@ -63,7 +66,9 @@ export default function AppHeader({
             >
               <ListMusic size={18} />
               <span>
-                {playlistCount} video{playlistCount === 1 ? '' : 's'}
+                {trimmedName
+                  ? `${trimmedName} (${playlistCount})`
+                  : `${playlistCount} video${playlistCount === 1 ? '' : 's'}`}
               </span>
             </button>
             {isOwner ? (
