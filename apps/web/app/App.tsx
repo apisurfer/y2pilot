@@ -6,6 +6,7 @@ import DropArea from '~/components/DropArea/DropArea'
 import SongList from '~/components/SongList/SongList'
 import HowTo from '~/components/HowTo/HowTo'
 import HelpScreen from '~/components/HelpScreen/HelpScreen'
+import Loader from '~/components/Loader/Loader'
 import { useNotify } from '~/components/Notifications'
 import { usePlaylist } from '~/hooks/usePlaylist'
 import { getYtVideoId, getYtUrls } from '~/lib/string'
@@ -55,6 +56,12 @@ export default function App() {
 
   const [videoSlice, setVideoSlice] = useState<VideoSlice | null>(null)
   const [dropMode, setDropMode] = useState(false)
+  // True while a playlist referenced by the /p/:id route is being fetched. Drives
+  // a centered loader over an otherwise empty main area until the playlist is
+  // loaded (or fails), so we never flash the intro screen on a shared link.
+  const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(
+    routePlaylistId !== null,
+  )
   const [showStage, setShowStage] = useState<Stage>(stages.INTRO)
   // VideoIds of the playlist as last persisted on the backend. null means no
   // backend-backed playlist exists yet for this session. Compared against the
@@ -247,6 +254,7 @@ export default function App() {
       })
       .finally(() => {
         loadingFromUrlRef.current = false
+        setIsLoadingPlaylist(false)
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -695,7 +703,10 @@ export default function App() {
 
         <div
           style={{
-            display: showStage === stages.INTRO ? undefined : 'none',
+            display:
+              showStage === stages.INTRO && !isLoadingPlaylist
+                ? undefined
+                : 'none',
             height: '100%',
           }}
         >
@@ -731,6 +742,8 @@ export default function App() {
         >
           <HelpScreen />
         </div>
+
+        {isLoadingPlaylist && <Loader />}
       </div>
 
     </div>
