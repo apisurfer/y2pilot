@@ -50,7 +50,7 @@ export default function HelpScreen() {
             </span>
             <span className={css.shortcutExplanation}>
               Toggle playlist &mdash;{' '}
-              <strong className={css.emphasize}>p</strong>
+              <strong className={css.emphasize}>shift + p</strong>
             </span>
             <span className={css.shortcutExplanation}>
               Toggle help screen &mdash;{' '}
@@ -62,15 +62,15 @@ export default function HelpScreen() {
             </span>
             <span className={css.shortcutExplanation}>
               Previous video &mdash;{' '}
-              <strong className={css.emphasize}>left arrow</strong>
+              <strong className={css.emphasize}>shift + left arrow</strong>
             </span>
             <span className={css.shortcutExplanation}>
               Next video &mdash;{' '}
-              <strong className={css.emphasize}>right arrow</strong>
+              <strong className={css.emphasize}>shift + right arrow</strong>
             </span>
             <span className={css.shortcutExplanation}>
               Skip video &mdash;{' '}
-              <strong className={css.emphasize}>1, 2, 3</strong>
+              <strong className={css.emphasize}>shift + 1, 2, 3</strong>
             </span>
           </p>
         </aside>

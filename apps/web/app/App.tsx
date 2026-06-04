@@ -485,7 +485,7 @@ export default function App() {
       // Playlist-related shortcuts: only active once there's a playlist.
       if (showStageRef.current === stages.INTRO) return
 
-      if (e.key === 'p' || e.key === 'P') {
+      if (e.shiftKey && (e.key === 'p' || e.key === 'P')) {
         handleShowPlaylist()
         return
       }
@@ -493,23 +493,23 @@ export default function App() {
         if (!isForeignRef.current) playlistShuffle()
         return
       }
-      if (e.key === 'ArrowLeft') {
+      if (e.shiftKey && e.key === 'ArrowLeft') {
         playlistPrevious()
         return
       }
-      if (e.key === 'ArrowRight') {
+      if (e.shiftKey && e.key === 'ArrowRight') {
         playlistNext()
         return
       }
-      if (e.key === '1') {
+      if (e.shiftKey && e.code === 'Digit1') {
         handleUpcomingSelected(1)
         return
       }
-      if (e.key === '2') {
+      if (e.shiftKey && e.code === 'Digit2') {
         handleUpcomingSelected(2)
         return
       }
-      if (e.key === '3') {
+      if (e.shiftKey && e.code === 'Digit3') {
         handleUpcomingSelected(3)
         return
       }
