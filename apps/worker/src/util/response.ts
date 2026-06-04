@@ -5,7 +5,7 @@ const CORS_HEADERS = {
 }
 
 export const corsRespondOk = () => {
-  return new Response("", {status: 204, headers: new Headers(CORS_HEADERS)})
+  return new Response(null, {status: 204, headers: new Headers(CORS_HEADERS)})
 }
 
 export const getResponseConf = (status = 200, customHeaders = {}) => {
