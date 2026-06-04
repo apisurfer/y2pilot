@@ -26,10 +26,10 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
     <div className={css.howTo}>
       <div className={css.howToContent}>
         <div className={css.pitch}>
-          <h1>Youtube playlists on the fly</h1>
+          <h1>Instantly shareable YouTube playlists</h1>
           <ul>
             <li>no account required</li>
-            <li>no interruptions, non-stop play</li>
+            <li>no ad interruptions, non-stop play</li>
             <li>create, share, play, forget about it</li>
             <li>incognito mode supported</li>
             <li>free 😎</li>
@@ -55,8 +55,11 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
             <li>video thumbnail</li>
           </ul>
           <p>
-            Try it out with example link, grab the link and drop it anywhere on
-            this page.
+            Try it out with following example:
+            <br />
+            1. grab the link
+            <br />
+            2. drop it anywhere on this page.
           </p>
           <div className={css.ytCard}>
             <img src={lesgo} alt="" />

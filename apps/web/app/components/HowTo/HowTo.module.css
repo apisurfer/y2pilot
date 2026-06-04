@@ -28,6 +28,7 @@
   justify-content: center;
   height: 100%;
   max-width: 1200px;
+  padding-top: 8vh;
 }
 
 /* .howToContent img {
@@ -44,7 +45,7 @@
 .pitch {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .pitch ul {
@@ -71,13 +72,14 @@
 .pitch h1 {
   font-size: 5.5rem;
   line-height: 1.15;
+  margin-top: 0;
 }
 
 .initInstructions {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  margin-top: 5rem;
+  justify-content: flex-start;
+  margin-top: 0;
 }
 
 .initInstructions img {

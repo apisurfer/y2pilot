@@ -17,9 +17,9 @@ export default function HelpScreen() {
           <h2>Best use cases</h2>
           <ul>
             <li>
-              <strong>playlists for a given moment</strong> - Queue only what
-              fits the mood, play it through, and drop the list when you are
-              done—no archive to maintain and no leftover queue to clean up.
+              <strong>no new apps or accounts</strong> - just instantly
+              shareable playlists for the moment; queue what fits, play it
+              through, and drop it when you are done.
             </li>
             <li>
               <strong>watch multiple videos in a row</strong> - Run them
@@ -29,8 +29,7 @@ export default function HelpScreen() {
             </li>
             <li>
               <strong>private gatherings</strong> - guests add videos anytime;
-              the queue loops on its own. No designated DJ, no new apps or
-              accounts.
+              the queue loops on its own. No designated DJ.
             </li>
           </ul>
 
