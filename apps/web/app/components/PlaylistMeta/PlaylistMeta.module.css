@@ -1,0 +1,127 @@
+.meta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.emojiSlot {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.emojiButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #4a635d;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.emojiButton:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.emojiGlyph {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* Shown on hover over a set emoji: click to clear it, then the button reverts
+   to the emoji picker so a new one can be chosen. */
+.clearOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(220, 80, 80, 0.5);
+  border-radius: 8px;
+  background: rgba(40, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.emojiSlot:hover .clearOverlay,
+.clearOverlay:focus-visible {
+  opacity: 1;
+}
+
+.titleInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.titleInput::placeholder {
+  color: #4a635d;
+}
+
+.titleInput:focus {
+  outline: none;
+  border-color: #4db6ac;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.picker {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 200;
+}
+
+.pickerLoading {
+  width: 320px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #222;
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.readOnly {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+.readOnlyEmoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.readOnlyName {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

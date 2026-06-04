@@ -15,6 +15,7 @@ import {
 import { textElipsis } from '~/lib/string'
 import { fetchOembedBatch } from '~/lib/http'
 import type { Song } from '~/hooks/usePlaylist'
+import PlaylistMeta from '~/components/PlaylistMeta/PlaylistMeta'
 import css from './SongList.module.css'
 
 interface SongInfo {
@@ -36,6 +37,10 @@ interface SongListProps {
   onRemoveSong: (videoId: string) => void
   notify: (opts: { text: string; type?: string; duration?: number }) => void
   readOnly?: boolean
+  name: string
+  emoji: string
+  onChangeName: (name: string) => void
+  onChangeEmoji: (emoji: string) => void
 }
 
 const stopProp = (e: React.DragEvent) => e.stopPropagation()
@@ -52,6 +57,10 @@ export default function SongList({
   onRemoveSong,
   notify,
   readOnly = false,
+  name,
+  emoji,
+  onChangeName,
+  onChangeEmoji,
 }: SongListProps) {
   const [songInfo, setSongInfo] = useState<Record<string, SongInfo>>({})
   const [playlistCopy, setPlaylistCopy] = useState<Song[]>([])
@@ -148,6 +157,13 @@ export default function SongList({
       <header className={css.header}>
         {songNumber > 0 && (
           <>
+            <PlaylistMeta
+              name={name}
+              emoji={emoji}
+              readOnly={readOnly}
+              onChangeName={onChangeName}
+              onChangeEmoji={onChangeEmoji}
+            />
             <div className={css.playbackControls}>
               <button
                 className={css.iconButton}

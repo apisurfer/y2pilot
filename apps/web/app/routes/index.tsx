@@ -65,6 +65,12 @@ function App() {
   const [playlistId, setPlaylistId] = useState<string | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [isSavingPlaylist, setIsSavingPlaylist] = useState(false)
+  // Optional playlist title + emoji, and the versions last persisted to the
+  // backend (used to detect unsaved meta changes). Empty string = unset.
+  const [playlistName, setPlaylistName] = useState('')
+  const [playlistEmoji, setPlaylistEmoji] = useState('')
+  const [backendName, setBackendName] = useState<string | null>(null)
+  const [backendEmoji, setBackendEmoji] = useState<string | null>(null)
   const [disablePlayerPointerEvents, setDisablePlayerPointerEvents] =
     useState(false)
 
@@ -117,6 +123,16 @@ function App() {
       backendVideoIds.length !== currentVideoIds.length ||
       backendVideoIds.some((id, i) => id !== currentVideoIds[i]))
 
+  // Normalized current meta ('' → null) and whether it diverges from what's
+  // persisted. Only meaningful once a backend playlist exists.
+  const currentMeta = {
+    name: playlistName.trim() || null,
+    emoji: playlistEmoji || null,
+  }
+  const isMetaDirty =
+    backendVideoIds !== null &&
+    (currentMeta.name !== backendName || currentMeta.emoji !== backendEmoji)
+
   // A "foreign" playlist is one we've loaded but don't own. It's read-only;
   // editing requires making a copy first. A freshly-built playlist (no backend
   // id yet) is never foreign — we become its owner on auto-create.
@@ -133,13 +149,19 @@ function App() {
   // Create a backend playlist owned by this browser (token sent by the http
   // layer), bind the session to it, and reflect its id in the URL.
   const createOwnedPlaylist = useCallback(
-    (snapshot: string[], gen: number) => {
+    (
+      snapshot: string[],
+      meta: { name: string | null; emoji: string | null },
+      gen: number,
+    ) => {
       setIsSavingPlaylist(true)
-      return createPlaylist(snapshot)
+      return createPlaylist(snapshot, meta)
         .then((newId: string | undefined) => {
           if (gen !== persistGenRef.current) return
           if (!newId) throw new Error('No playlist ID')
           setBackendVideoIds(snapshot)
+          setBackendName(meta.name)
+          setBackendEmoji(meta.emoji)
           setPlaylistId(newId)
           setIsOwner(true)
           const url = new URL(window.location.href)
@@ -156,13 +178,20 @@ function App() {
   // Persist the current playlist (videos + order) to an owned backend playlist
   // in one request. Demotes us to non-owner if the server rejects the token.
   const saveOwnedPlaylist = useCallback(
-    (id: string, snapshot: string[], gen: number) => {
+    (
+      id: string,
+      snapshot: string[],
+      meta: { name: string | null; emoji: string | null },
+      gen: number,
+    ) => {
       setIsSavingPlaylist(true)
-      return updatePlaylist(id, snapshot)
+      return updatePlaylist(id, snapshot, meta)
         .then((result) => {
           if (gen !== persistGenRef.current) return
           if (result === 'ok') {
             setBackendVideoIds(snapshot)
+            setBackendName(meta.name)
+            setBackendEmoji(meta.emoji)
           } else if (result === 'forbidden' || result === 'not_found') {
             setIsOwner(false)
             notify({
@@ -206,6 +235,10 @@ function App() {
         setBackendVideoIds(response.videoIds)
         setPlaylistId(response.id)
         setIsOwner(response.isOwner)
+        setPlaylistName(response.name ?? '')
+        setPlaylistEmoji(response.emoji ?? '')
+        setBackendName(response.name ?? null)
+        setBackendEmoji(response.emoji ?? null)
       })
       .finally(() => {
         loadingFromUrlRef.current = false
@@ -226,7 +259,11 @@ function App() {
     autoCreateInFlightRef.current = true
     const snapshot = playlist.map((s) => s.videoId)
     const gen = persistGenRef.current
-    createOwnedPlaylist(snapshot, gen)
+    createOwnedPlaylist(
+      snapshot,
+      { name: playlistName.trim() || null, emoji: playlistEmoji || null },
+      gen,
+    )
       .catch(() => {
         notify({
           text: 'Failed to create a shareable playlist. You can try again with Save.',
@@ -236,7 +273,14 @@ function App() {
       .finally(() => {
         autoCreateInFlightRef.current = false
       })
-  }, [playlist, backendVideoIds, notify, createOwnedPlaylist])
+  }, [
+    playlist,
+    backendVideoIds,
+    notify,
+    createOwnedPlaylist,
+    playlistName,
+    playlistEmoji,
+  ])
 
   // --- Auto-save owned playlists ---
   // Once we own a backend playlist, every edit (add/remove/reorder/shuffle) is
@@ -245,21 +289,28 @@ function App() {
   // are coalesced into a follow-up save.
   useEffect(() => {
     if (!isOwner || !playlistId) return
-    if (!isPlaylistDirty) return
+    if (!isPlaylistDirty && !isMetaDirty) return
     if (isSavingPlaylist) return
 
     const snapshot = currentVideoIdsKey ? currentVideoIdsKey.split(',') : []
+    const meta = {
+      name: playlistName.trim() || null,
+      emoji: playlistEmoji || null,
+    }
     const gen = persistGenRef.current
     const handle = setTimeout(() => {
-      saveOwnedPlaylist(playlistId, snapshot, gen)
+      saveOwnedPlaylist(playlistId, snapshot, meta, gen)
     }, 800)
     return () => clearTimeout(handle)
   }, [
     isOwner,
     playlistId,
     isPlaylistDirty,
+    isMetaDirty,
     isSavingPlaylist,
     currentVideoIdsKey,
+    playlistName,
+    playlistEmoji,
     saveOwnedPlaylist,
   ])
 
@@ -267,7 +318,7 @@ function App() {
   // Warn whenever local state has unsaved changes against the backend.
   useEffect(() => {
     // Foreign playlists are read-only and never persisted, so don't warn on them.
-    if (!isPlaylistDirty || isForeign) return
+    if ((!isPlaylistDirty && !isMetaDirty) || isForeign) return
 
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
@@ -277,7 +328,17 @@ function App() {
 
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [isPlaylistDirty, isForeign])
+  }, [isPlaylistDirty, isMetaDirty, isForeign])
+
+  // --- Document title reflects the playlist's emoji + title ---
+  // Format: "<emoji> <title> - y2pilot", with each part optional (just
+  // "y2pilot" when neither is set).
+  useEffect(() => {
+    const prefix = [playlistEmoji.trim(), playlistName.trim()]
+      .filter(Boolean)
+      .join(' ')
+    document.title = prefix ? `${prefix} - y2pilot` : 'y2pilot'
+  }, [playlistEmoji, playlistName])
 
   // --- Page focus / visibility management ---
   useEffect(() => {
@@ -531,17 +592,31 @@ function App() {
   function onSavePlaylist() {
     if (!playlist.length || isSavingPlaylist || isForeign) return
     const snapshot = playlist.map((v) => v.videoId)
+    const meta = {
+      name: playlistName.trim() || null,
+      emoji: playlistEmoji || null,
+    }
     const gen = persistGenRef.current
     if (playlistId) {
-      saveOwnedPlaylist(playlistId, snapshot, gen)
+      saveOwnedPlaylist(playlistId, snapshot, meta, gen)
     } else {
-      createOwnedPlaylist(snapshot, gen).catch(() => {
+      createOwnedPlaylist(snapshot, meta, gen).catch(() => {
         notify({
           text: 'Failed to save playlist. Please try again.',
           type: 'error',
         })
       })
     }
+  }
+
+  function onChangeName(newName: string) {
+    if (isForeign) return
+    setPlaylistName(newName)
+  }
+
+  function onChangeEmoji(newEmoji: string) {
+    if (isForeign) return
+    setPlaylistEmoji(newEmoji)
   }
 
   // Fork a foreign (read-only) playlist into a fresh one we own, so it becomes
@@ -551,7 +626,11 @@ function App() {
     persistGenRef.current += 1
     const gen = persistGenRef.current
     const snapshot = playlist.map((v) => v.videoId)
-    createOwnedPlaylist(snapshot, gen)
+    const meta = {
+      name: playlistName.trim() || null,
+      emoji: playlistEmoji || null,
+    }
+    createOwnedPlaylist(snapshot, meta, gen)
       .then(() => {
         if (gen !== persistGenRef.current) return
         notify({ text: "Copied! It's now your editable playlist." })
@@ -633,6 +712,10 @@ function App() {
             onRemoveSong={playlistRemoveSong}
             notify={notify}
             readOnly={isForeign}
+            name={playlistName}
+            emoji={playlistEmoji}
+            onChangeName={onChangeName}
+            onChangeEmoji={onChangeEmoji}
           />
         </div>
         <div

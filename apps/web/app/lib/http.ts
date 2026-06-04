@@ -80,7 +80,15 @@ export async function fetchOembedBatch(videoIds: string[]) {
   }
 }
 
-export async function createPlaylist(videoIds: string[]) {
+export interface PlaylistMeta {
+  name?: string | null
+  emoji?: string | null
+}
+
+export async function createPlaylist(
+  videoIds: string[],
+  meta: PlaylistMeta = {},
+) {
   if (!videoIds.length) return
 
   const playlistCreation = await fetchJSON(`${config.workerUrl}/playlists`, {
@@ -90,7 +98,11 @@ export async function createPlaylist(videoIds: string[]) {
       'Content-Type': 'application/json',
       'X-Owner-Token': getOrCreateOwnerToken(),
     },
-    body: JSON.stringify({ videoIds }),
+    body: JSON.stringify({
+      videoIds,
+      name: meta.name ?? null,
+      emoji: meta.emoji ?? null,
+    }),
   })
 
   return playlistCreation.id
@@ -132,6 +144,7 @@ export type UpdatePlaylistResult = 'ok' | 'forbidden' | 'not_found' | 'error'
 export async function updatePlaylist(
   playlistId: string,
   videoIds: string[],
+  meta: PlaylistMeta = {},
 ): Promise<UpdatePlaylistResult> {
   if (!playlistId) return 'error'
 
@@ -142,7 +155,11 @@ export async function updatePlaylist(
       'Content-Type': 'application/json',
       'X-Owner-Token': getOrCreateOwnerToken(),
     },
-    body: JSON.stringify({ videoIds }),
+    body: JSON.stringify({
+      videoIds,
+      name: meta.name ?? null,
+      emoji: meta.emoji ?? null,
+    }),
   })
 
   if (res.ok) return 'ok'
