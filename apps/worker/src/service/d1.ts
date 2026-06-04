@@ -5,6 +5,7 @@ export interface Playlist {
   id: string
   name: string | null
   emoji: string | null
+  ownerToken: string | null
   videoIds: Array<string>
 }
 
@@ -82,10 +83,15 @@ export function putVideo(env: Env, id: string, oembed: YtOembedLight) {
 
 export async function getPlaylist(env: Env, id: string): Promise<Playlist | null> {
   const meta = await env.DB.prepare(
-    `SELECT id, name, emoji FROM playlists WHERE id = ?`,
+    `SELECT id, name, emoji, owner_token FROM playlists WHERE id = ?`,
   )
     .bind(id)
-    .first<{id: string; name: string | null; emoji: string | null}>()
+    .first<{
+      id: string
+      name: string | null
+      emoji: string | null
+      owner_token: string | null
+    }>()
 
   if (!meta) return null
 
@@ -99,6 +105,7 @@ export async function getPlaylist(env: Env, id: string): Promise<Playlist | null
     id: meta.id,
     name: meta.name,
     emoji: meta.emoji,
+    ownerToken: meta.owner_token,
     videoIds: results.map((r) => r.video_id),
   }
 }
@@ -107,11 +114,12 @@ export function putPlaylist(
   env: Env,
   playlistId: string,
   playlist: {videoIds: Array<string>; name?: string | null; emoji?: string | null},
+  ownerToken: string | null = null,
 ) {
   const stmts: D1PreparedStatement[] = [
     env.DB.prepare(
-      `INSERT INTO playlists (id, name, emoji) VALUES (?, ?, ?)`,
-    ).bind(playlistId, playlist.name ?? null, playlist.emoji ?? null),
+      `INSERT INTO playlists (id, name, emoji, owner_token) VALUES (?, ?, ?, ?)`,
+    ).bind(playlistId, playlist.name ?? null, playlist.emoji ?? null, ownerToken),
   ]
 
   playlist.videoIds.forEach((videoId, position) => {
@@ -129,4 +137,57 @@ export function putPlaylist(
 
   // batch() runs as a single implicit transaction.
   return env.DB.batch(stmts)
+}
+
+// Replace a playlist's videos (and optionally name/emoji) in a single batched
+// write, gated on ownership. Returns:
+//   'not_found' — no playlist with this id
+//   'forbidden' — playlist has no owner, or the token doesn't match it
+//   'ok'        — caller owns it and the replacement was applied
+export async function updatePlaylistVideos(
+  env: Env,
+  playlistId: string,
+  token: string | null,
+  videoIds: Array<string>,
+  name?: string | null,
+  emoji?: string | null,
+): Promise<'not_found' | 'forbidden' | 'ok'> {
+  const row = await env.DB.prepare(
+    `SELECT owner_token FROM playlists WHERE id = ?`,
+  )
+    .bind(playlistId)
+    .first<{owner_token: string | null}>()
+
+  if (!row) return 'not_found'
+  // A NULL owner means nobody owns it — never editable. Plaintext compare.
+  if (!row.owner_token || !token || row.owner_token !== token) return 'forbidden'
+
+  const stmts: D1PreparedStatement[] = [
+    env.DB.prepare(`DELETE FROM playlist_videos WHERE playlist_id = ?`).bind(
+      playlistId,
+    ),
+  ]
+
+  if (name !== undefined || emoji !== undefined) {
+    stmts.push(
+      env.DB.prepare(
+        `UPDATE playlists SET name = ?, emoji = ? WHERE id = ?`,
+      ).bind(name ?? null, emoji ?? null, playlistId),
+    )
+  }
+
+  videoIds.forEach((videoId, position) => {
+    stmts.push(
+      env.DB.prepare(`INSERT OR IGNORE INTO videos (id) VALUES (?)`).bind(videoId),
+    )
+    stmts.push(
+      env.DB.prepare(
+        `INSERT INTO playlist_videos (playlist_id, video_id, position) VALUES (?, ?, ?)`,
+      ).bind(playlistId, videoId, position),
+    )
+  })
+
+  // batch() runs as a single implicit transaction.
+  await env.DB.batch(stmts)
+  return 'ok'
 }

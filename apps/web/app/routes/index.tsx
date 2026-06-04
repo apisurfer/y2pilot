@@ -9,7 +9,11 @@ import HelpScreen from '~/components/HelpScreen/HelpScreen'
 import { useNotify } from '~/components/Notifications'
 import { usePlaylist } from '~/hooks/usePlaylist'
 import { getYtVideoId, getYtUrls, getSearchParam } from '~/lib/string'
-import { fetchPlaylist as fetchPlaylistApi, createPlaylist } from '~/lib/http'
+import {
+  fetchPlaylist as fetchPlaylistApi,
+  createPlaylist,
+  updatePlaylist,
+} from '~/lib/http'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -55,6 +59,11 @@ function App() {
   // backend-backed playlist exists yet for this session. Compared against the
   // current playlist to detect unsaved changes (add/remove/reorder).
   const [backendVideoIds, setBackendVideoIds] = useState<string[] | null>(null)
+  // The backend id of the playlist this session is bound to, and whether this
+  // browser's owner token owns it. A loaded playlist we don't own is "foreign":
+  // read-only, with a "Make a copy" action instead of auto-save.
+  const [playlistId, setPlaylistId] = useState<string | null>(null)
+  const [isOwner, setIsOwner] = useState(false)
   const [isSavingPlaylist, setIsSavingPlaylist] = useState(false)
   const [disablePlayerPointerEvents, setDisablePlayerPointerEvents] =
     useState(false)
@@ -101,17 +110,78 @@ function App() {
   // in flight (backendVideoIds still null with a non-empty playlist), nothing
   // is persisted yet either — treat that as dirty so we warn on unload.
   const currentVideoIds = playlist.map((s) => s.videoId)
+  const currentVideoIdsKey = currentVideoIds.join(',')
   const isPlaylistDirty =
     playlist.length > 0 &&
     (backendVideoIds === null ||
       backendVideoIds.length !== currentVideoIds.length ||
       backendVideoIds.some((id, i) => id !== currentVideoIds[i]))
 
+  // A "foreign" playlist is one we've loaded but don't own. It's read-only;
+  // editing requires making a copy first. A freshly-built playlist (no backend
+  // id yet) is never foreign — we become its owner on auto-create.
+  const isForeign = playlistId !== null && !isOwner
+  const isForeignRef = useRef(isForeign)
+  isForeignRef.current = isForeign
+
   // Generation counter: any in-flight POST that resolves after a clear/reset
   // should not retro-actively re-populate backendVideoIds or the URL.
   const persistGenRef = useRef(0)
   const autoCreateInFlightRef = useRef(false)
   const loadingFromUrlRef = useRef(false)
+
+  // Create a backend playlist owned by this browser (token sent by the http
+  // layer), bind the session to it, and reflect its id in the URL.
+  const createOwnedPlaylist = useCallback(
+    (snapshot: string[], gen: number) => {
+      setIsSavingPlaylist(true)
+      return createPlaylist(snapshot)
+        .then((newId: string | undefined) => {
+          if (gen !== persistGenRef.current) return
+          if (!newId) throw new Error('No playlist ID')
+          setBackendVideoIds(snapshot)
+          setPlaylistId(newId)
+          setIsOwner(true)
+          const url = new URL(window.location.href)
+          url.searchParams.set('p', newId)
+          window.history.replaceState(null, '', url.toString())
+        })
+        .finally(() => {
+          setIsSavingPlaylist(false)
+        })
+    },
+    [],
+  )
+
+  // Persist the current playlist (videos + order) to an owned backend playlist
+  // in one request. Demotes us to non-owner if the server rejects the token.
+  const saveOwnedPlaylist = useCallback(
+    (id: string, snapshot: string[], gen: number) => {
+      setIsSavingPlaylist(true)
+      return updatePlaylist(id, snapshot)
+        .then((result) => {
+          if (gen !== persistGenRef.current) return
+          if (result === 'ok') {
+            setBackendVideoIds(snapshot)
+          } else if (result === 'forbidden' || result === 'not_found') {
+            setIsOwner(false)
+            notify({
+              text: "You can't edit this playlist. Make a copy to save your changes.",
+              type: 'error',
+            })
+          } else {
+            notify({
+              text: 'Failed to save playlist changes. Retrying…',
+              type: 'error',
+            })
+          }
+        })
+        .finally(() => {
+          setIsSavingPlaylist(false)
+        })
+    },
+    [notify],
+  )
 
   // --- Mount: Load playlist from URL param ---
   const mountedRef = useRef(false)
@@ -125,14 +195,17 @@ function App() {
     loadingFromUrlRef.current = true
     const gen = persistGenRef.current
     fetchPlaylistApi(urlPlaylistId)
-      .then((response: { videoIds: string[] }) => {
+      .then((response) => {
         if (gen !== persistGenRef.current) return
+        if (!response) return
         const songlistObjects = response.videoIds.map((vid: string) => ({
           videoId: vid,
         }))
         playlistAddSongs(songlistObjects)
         playlistSetIndex(0)
         setBackendVideoIds(response.videoIds)
+        setPlaylistId(response.id)
+        setIsOwner(response.isOwner)
       })
       .finally(() => {
         loadingFromUrlRef.current = false
@@ -142,8 +215,8 @@ function App() {
 
   // --- Auto-create a backend playlist as soon as a video is added ---
   // Fires once when the local playlist first becomes non-empty without a
-  // backend-backed playlist. Subsequent edits become "dirty" against the
-  // snapshot and require an explicit Save.
+  // backend-backed playlist. We become its owner; subsequent edits are then
+  // debounced and auto-saved against it.
   useEffect(() => {
     if (playlist.length === 0) return
     if (backendVideoIds !== null) return
@@ -151,18 +224,9 @@ function App() {
     if (autoCreateInFlightRef.current) return
 
     autoCreateInFlightRef.current = true
-    setIsSavingPlaylist(true)
     const snapshot = playlist.map((s) => s.videoId)
     const gen = persistGenRef.current
-    createPlaylist(snapshot)
-      .then((playlistId: string | undefined) => {
-        if (gen !== persistGenRef.current) return
-        if (!playlistId) throw new Error('No playlist ID')
-        setBackendVideoIds(snapshot)
-        const url = new URL(window.location.href)
-        url.searchParams.set('p', playlistId)
-        window.history.replaceState(null, '', url.toString())
-      })
+    createOwnedPlaylist(snapshot, gen)
       .catch(() => {
         notify({
           text: 'Failed to create a shareable playlist. You can try again with Save.',
@@ -171,14 +235,39 @@ function App() {
       })
       .finally(() => {
         autoCreateInFlightRef.current = false
-        setIsSavingPlaylist(false)
       })
-  }, [playlist, backendVideoIds, notify])
+  }, [playlist, backendVideoIds, notify, createOwnedPlaylist])
+
+  // --- Auto-save owned playlists ---
+  // Once we own a backend playlist, every edit (add/remove/reorder/shuffle) is
+  // debounced and persisted in a single PUT. The effect reschedules whenever the
+  // videoIds change or a save settles, so edits made during an in-flight save
+  // are coalesced into a follow-up save.
+  useEffect(() => {
+    if (!isOwner || !playlistId) return
+    if (!isPlaylistDirty) return
+    if (isSavingPlaylist) return
+
+    const snapshot = currentVideoIdsKey ? currentVideoIdsKey.split(',') : []
+    const gen = persistGenRef.current
+    const handle = setTimeout(() => {
+      saveOwnedPlaylist(playlistId, snapshot, gen)
+    }, 800)
+    return () => clearTimeout(handle)
+  }, [
+    isOwner,
+    playlistId,
+    isPlaylistDirty,
+    isSavingPlaylist,
+    currentVideoIdsKey,
+    saveOwnedPlaylist,
+  ])
 
   // --- Before unload warning ---
   // Warn whenever local state has unsaved changes against the backend.
   useEffect(() => {
-    if (!isPlaylistDirty) return
+    // Foreign playlists are read-only and never persisted, so don't warn on them.
+    if (!isPlaylistDirty || isForeign) return
 
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
@@ -188,7 +277,7 @@ function App() {
 
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [isPlaylistDirty])
+  }, [isPlaylistDirty, isForeign])
 
   // --- Page focus / visibility management ---
   useEffect(() => {
@@ -275,6 +364,14 @@ function App() {
         return
       }
 
+      if (isForeignRef.current) {
+        notify({
+          text: 'This playlist is read-only. Make a copy to edit it.',
+          type: 'error',
+        })
+        return
+      }
+
       const eventText = e.clipboardData?.getData('text')
       if (!eventText) return
 
@@ -319,7 +416,7 @@ function App() {
         return
       }
       if (e.shiftKey && (e.key === 'S' || e.key === 's')) {
-        playlistShuffle()
+        if (!isForeignRef.current) playlistShuffle()
         return
       }
       if (e.key === 'ArrowLeft') {
@@ -354,12 +451,21 @@ function App() {
     setDropMode(mode)
   }
 
+  function notifyReadOnly() {
+    notify({
+      text: 'This playlist is read-only. Make a copy to edit it.',
+      type: 'error',
+    })
+  }
+
   function handleDroppedSongs(ytUrls: Array<{ videoId: string }> = []) {
+    if (isForeign) return notifyReadOnly()
     const addedCount = playlistAddSongs(ytUrls)
     notify({ text: `${addedCount} video URLs appended!` })
   }
 
   function handleAddVideoIdsThroughInput(videoIds: string[] = []) {
+    if (isForeign) return notifyReadOnly()
     const ytUrls = videoIds.map((vId) => ({ videoId: vId }))
     const addedCount = playlistAddSongs(ytUrls)
     notify({ text: `${addedCount} video URLs appended!` })
@@ -411,36 +517,50 @@ function App() {
   }
 
   function onPlaylistOrderChange(newPlaylist: Array<{ videoId: string }>) {
+    if (isForeign) return
     playlistChangeOrder(newPlaylist)
   }
 
   function onPlaylistShuffle() {
+    if (isForeign) return
     playlistShuffle()
   }
 
+  // Force an immediate save of an owned playlist (bypasses the auto-save
+  // debounce). Falls back to creating one if it hasn't been created yet.
   function onSavePlaylist() {
-    if (!playlist.length || isSavingPlaylist) return
+    if (!playlist.length || isSavingPlaylist || isForeign) return
     const snapshot = playlist.map((v) => v.videoId)
     const gen = persistGenRef.current
-    setIsSavingPlaylist(true)
-    createPlaylist(snapshot)
-      .then((playlistId: string | undefined) => {
-        if (gen !== persistGenRef.current) return
-        if (!playlistId) throw new Error('No playlist ID')
-        setBackendVideoIds(snapshot)
-        const url = new URL(window.location.href)
-        url.searchParams.set('p', playlistId)
-        window.history.replaceState(null, '', url.toString())
-        notify({ text: 'New playlist saved. Share URL updated.' })
-      })
-      .catch(() => {
+    if (playlistId) {
+      saveOwnedPlaylist(playlistId, snapshot, gen)
+    } else {
+      createOwnedPlaylist(snapshot, gen).catch(() => {
         notify({
           text: 'Failed to save playlist. Please try again.',
           type: 'error',
         })
       })
-      .finally(() => {
-        setIsSavingPlaylist(false)
+    }
+  }
+
+  // Fork a foreign (read-only) playlist into a fresh one we own, so it becomes
+  // editable. The new playlist takes over the URL and the session.
+  function onCopyPlaylist() {
+    if (!playlist.length || isSavingPlaylist) return
+    persistGenRef.current += 1
+    const gen = persistGenRef.current
+    const snapshot = playlist.map((v) => v.videoId)
+    createOwnedPlaylist(snapshot, gen)
+      .then(() => {
+        if (gen !== persistGenRef.current) return
+        notify({ text: "Copied! It's now your editable playlist." })
+      })
+      .catch(() => {
+        notify({
+          text: 'Failed to copy playlist. Please try again.',
+          type: 'error',
+        })
       })
   }
 
@@ -450,8 +570,10 @@ function App() {
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
         onSavePlaylist={onSavePlaylist}
+        onCopyPlaylist={onCopyPlaylist}
         activeStage={showStage}
         playlistCount={playlist.length}
+        isOwner={!isForeign}
         isPlaylistDirty={isPlaylistDirty}
         isSavingPlaylist={isSavingPlaylist}
       />
@@ -510,6 +632,7 @@ function App() {
             onNext={playlistNext}
             onRemoveSong={playlistRemoveSong}
             notify={notify}
+            readOnly={isForeign}
           />
         </div>
         <div

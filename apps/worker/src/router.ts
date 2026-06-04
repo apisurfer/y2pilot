@@ -16,6 +16,7 @@ router
 
   .post('/playlists', playlist.createPlaylist)
   .get('/playlists/:id', playlist.getPlaylist)
+  .put('/playlists/:id', playlist.updatePlaylist)
 
   // catch everything else
   .all('*', () => new Response('Not Found.', { status: 404 }))

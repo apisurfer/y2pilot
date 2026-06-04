@@ -1,4 +1,4 @@
-import { getOembed, setOembed } from './localstorage'
+import { getOembed, setOembed, getOrCreateOwnerToken } from './localstorage'
 import config from './config'
 
 interface OembedVideo {
@@ -86,14 +86,27 @@ export async function createPlaylist(videoIds: string[]) {
   const playlistCreation = await fetchJSON(`${config.workerUrl}/playlists`, {
     method: 'POST',
     mode: 'cors',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Owner-Token': getOrCreateOwnerToken(),
+    },
     body: JSON.stringify({ videoIds }),
   })
 
   return playlistCreation.id
 }
 
-export async function fetchPlaylist(playlistId: string) {
+export interface FetchedPlaylist {
+  id: string
+  name: string | null
+  emoji: string | null
+  videoIds: string[]
+  isOwner: boolean
+}
+
+export async function fetchPlaylist(
+  playlistId: string,
+): Promise<FetchedPlaylist | undefined> {
   if (!playlistId) return
 
   const playlist = await fetchJSON(
@@ -101,9 +114,39 @@ export async function fetchPlaylist(playlistId: string) {
     {
       method: 'GET',
       mode: 'cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Sent so the server can tell us whether we own this playlist.
+        'X-Owner-Token': getOrCreateOwnerToken(),
+      },
     },
   )
 
   return playlist
+}
+
+export type UpdatePlaylistResult = 'ok' | 'forbidden' | 'not_found' | 'error'
+
+// Persist the whole playlist (videos + their order) in a single request. Only
+// succeeds when our owner token matches the playlist's owner.
+export async function updatePlaylist(
+  playlistId: string,
+  videoIds: string[],
+): Promise<UpdatePlaylistResult> {
+  if (!playlistId) return 'error'
+
+  const res = await window.fetch(`${config.workerUrl}/playlists/${playlistId}`, {
+    method: 'PUT',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Owner-Token': getOrCreateOwnerToken(),
+    },
+    body: JSON.stringify({ videoIds }),
+  })
+
+  if (res.ok) return 'ok'
+  if (res.status === 403) return 'forbidden'
+  if (res.status === 404) return 'not_found'
+  return 'error'
 }

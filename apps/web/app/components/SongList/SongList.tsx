@@ -35,6 +35,7 @@ interface SongListProps {
   onNext: () => void
   onRemoveSong: (videoId: string) => void
   notify: (opts: { text: string; type?: string; duration?: number }) => void
+  readOnly?: boolean
 }
 
 const stopProp = (e: React.DragEvent) => e.stopPropagation()
@@ -50,6 +51,7 @@ export default function SongList({
   onNext,
   onRemoveSong,
   notify,
+  readOnly = false,
 }: SongListProps) {
   const [songInfo, setSongInfo] = useState<Record<string, SongInfo>>({})
   const [playlistCopy, setPlaylistCopy] = useState<Song[]>([])
@@ -121,7 +123,7 @@ export default function SongList({
 
   const handleDragEnd = useCallback(
     (result: DropResult) => {
-      if (!result.destination) return
+      if (readOnly || !result.destination) return
 
       const items = Array.from(playlistCopy)
       const [moved] = items.splice(result.source.index, 1)
@@ -129,7 +131,7 @@ export default function SongList({
       setPlaylistCopy(items)
       onPlaylistOrderChange(items)
     },
-    [playlistCopy, onPlaylistOrderChange],
+    [playlistCopy, onPlaylistOrderChange, readOnly],
   )
 
   return (
@@ -163,15 +165,19 @@ export default function SongList({
               >
                 <SkipForward size={22} />
               </button>
-              <div className={css.headerDivider} aria-hidden="true" />
-              <button
-                className={css.iconButton}
-                onClick={onShuffle}
-                title="Shuffle"
-                aria-label="Shuffle"
-              >
-                <Shuffle size={22} />
-              </button>
+              {!readOnly && (
+                <>
+                  <div className={css.headerDivider} aria-hidden="true" />
+                  <button
+                    className={css.iconButton}
+                    onClick={onShuffle}
+                    title="Shuffle"
+                    aria-label="Shuffle"
+                  >
+                    <Shuffle size={22} />
+                  </button>
+                </>
+              )}
             </div>
           </>
         )}
@@ -191,6 +197,7 @@ export default function SongList({
                     key={song.videoId}
                     draggableId={song.videoId}
                     index={i}
+                    isDragDisabled={readOnly}
                   >
                     {(dragProvided) => (
                       <li
@@ -222,17 +229,19 @@ export default function SongList({
                               )
                             : song.videoId}
                         </span>
-                        <button
-                          className={css.songRemove}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onRemoveSong(song.videoId)
-                          }}
-                          title="Remove from playlist"
-                          aria-label="Remove from playlist"
-                        >
-                          <X size={16} />
-                        </button>
+                        {!readOnly && (
+                          <button
+                            className={css.songRemove}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              onRemoveSong(song.videoId)
+                            }}
+                            title="Remove from playlist"
+                            aria-label="Remove from playlist"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
                       </li>
                     )}
                   </Draggable>
