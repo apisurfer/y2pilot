@@ -585,9 +585,7 @@ export default function App() {
   }
 
   function handleShowPlaying() {
-    if (playlist.length) {
-      setShowStage(stages.PLAYING)
-    }
+    setShowStage(playlist.length ? stages.PLAYING : stages.INTRO)
   }
 
   function onPlaylistOrderChange(newPlaylist: Array<{ videoId: string }>) {
