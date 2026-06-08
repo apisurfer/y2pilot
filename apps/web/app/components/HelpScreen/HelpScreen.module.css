@@ -32,6 +32,24 @@
   margin-top: 0;
 }
 
+/* Base (mobile) rhythm so headings/body read consistently before the grid kicks in */
+.helpMain h2,
+.helpShortcuts h2 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.helpMain p,
+.helpMain li {
+  line-height: 1.55;
+}
+
+.helpMain li {
+  margin-bottom: 0.6rem;
+}
+
 @media (min-width: 900px) {
   .helpScreen {
     padding: 2.5rem 3rem;

@@ -166,3 +166,36 @@
   height: 18px;
   color: #333;
 }
+
+/* --- Mobile: the list takes the full screen and stays touch-friendly --- */
+@media (max-width: 899px) {
+  .editor {
+    width: 100%;
+  }
+
+  /* Rows are a touch taller for comfortable tapping */
+  .editor ul li {
+    height: 52px;
+  }
+
+  .songThumb {
+    height: 52px;
+    width: 52px;
+  }
+
+  /* No hover on touch, so the remove button is always visible */
+  .songRemove {
+    opacity: 1;
+    color: #aaa;
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Larger drag affordance for fingers */
+  .dragHandle {
+    padding: 0 0.5rem;
+  }
+  .dragHandleIcon svg {
+    color: #555;
+  }
+}

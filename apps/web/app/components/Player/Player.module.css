@@ -22,6 +22,14 @@
   width: 65%;
 }
 
+/* On mobile the playlist overlays the whole screen, so the player stays
+   full-width underneath rather than collapsing to a narrow column. */
+@media (max-width: 899px) {
+  .halfScreen {
+    width: 100%;
+  }
+}
+
 /* .noPlayerPointerEvents {
   pointer-events: none;
 } */

@@ -148,3 +148,52 @@
   width: 140px;
   height: 15px;
 }
+
+/* --- Mobile: stack the two columns, scale type down, allow scrolling --- */
+@media (max-width: 899px) {
+  .howToContent {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 1.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .pitch,
+  .initInstructions {
+    width: 100%;
+    padding: 0 1.25rem;
+  }
+
+  .pitch h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+
+  .pitch ul {
+    font-size: 1.05rem;
+    padding-left: 1.75rem;
+  }
+
+  .pitch ul li::before {
+    left: -1.75rem;
+  }
+
+  .initInstructions {
+    margin-top: 2rem;
+  }
+
+  .initInstructions h2 {
+    font-size: 1.75rem;
+  }
+
+  /* The example card's green markers are pinned to the full-size image and
+     can't track it once it scales down, so hide them on small screens. */
+  .ytCard .ytThumb,
+  .ytCard .ytTitle {
+    display: none;
+  }
+}

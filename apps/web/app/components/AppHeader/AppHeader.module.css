@@ -102,3 +102,62 @@
     animation: none;
   }
 }
+
+/* --- Mobile: keep the header on a single row, shrink/truncate gracefully --- */
+@media (max-width: 899px) {
+  .appHeader {
+    padding: 0.4rem 0.6rem;
+    gap: 0.4rem;
+  }
+
+  .leftGroup {
+    flex: 1;
+    min-width: 0;
+    gap: 0.4rem;
+  }
+
+  .rightGroup {
+    flex-shrink: 0;
+  }
+
+  /* Logo collapses to just the pilot icon to free up room for the title */
+  .logo {
+    flex-shrink: 0;
+    padding: 6px 8px;
+  }
+  .logo span {
+    display: none;
+  }
+
+  .playlistGroup {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pillButton {
+    padding: 6px 10px;
+    min-width: 0;
+  }
+
+  /* The playlist title pill takes the remaining space and ellipsizes */
+  .playlistGroup > .pillButton:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+  .playlistGroup > .pillButton:first-child span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Save/copy pill keeps its label but never shrinks the icon away */
+  .pillButtonSmall {
+    flex-shrink: 0;
+  }
+
+  /* Help button collapses to its icon */
+  .rightGroup .pillButton span {
+    display: none;
+  }
+}
