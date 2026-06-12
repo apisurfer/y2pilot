@@ -11,6 +11,10 @@
   background: rgba(0, 0, 0, 1);
 }
 
+.addUrl {
+  padding: 1rem 1rem 0;
+}
+
 .header {
   display: flex;
   flex-wrap: wrap;

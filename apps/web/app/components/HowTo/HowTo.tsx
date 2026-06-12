@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { getYtVideoId, getYtUrls } from '~/lib/string'
+import UrlInput from '~/components/UrlInput/UrlInput'
 import lesgo from '~/assets/lesgo.png'
 import css from './HowTo.module.css'
 
@@ -8,20 +7,6 @@ interface HowToProps {
 }
 
 export default function HowTo({ onAddYtUrls }: HowToProps) {
-  const [urlInput, setUrlInput] = useState('')
-
-  function handleUrlChange(value: string) {
-    setUrlInput(value)
-    const videoIds = getYtUrls(value)
-      .map(getYtVideoId)
-      .filter(Boolean) as string[]
-
-    if (videoIds.length) {
-      onAddYtUrls(videoIds)
-      setUrlInput('')
-    }
-  }
-
   return (
     <div className={css.howTo}>
       <div className={css.howToContent}>
@@ -36,16 +21,7 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
           </ul>
         </div>
         <div className={css.initInstructions}>
-          <input
-            value={urlInput}
-            autoFocus
-            className={css.urlInput}
-            type="url"
-            placeholder="Paste Youtube URL(s)"
-            onChange={(e) => handleUrlChange(e.target.value)}
-            onKeyUp={(e) => e.stopPropagation()}
-            onPaste={(e) => e.stopPropagation()}
-          />
+          <UrlInput autoFocus onAddYtUrls={onAddYtUrls} className={css.urlInput} />
           <p>
             Drag and drop, or paste a Youtube:
           </p>

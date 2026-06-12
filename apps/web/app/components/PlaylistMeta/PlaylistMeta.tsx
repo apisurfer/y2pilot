@@ -93,7 +93,7 @@ export default function PlaylistMeta({
         className={css.titleInput}
         value={name}
         onChange={(e) => onChangeName(e.target.value)}
-        placeholder="Add a title…"
+        placeholder="Set playlist title..."
         maxLength={120}
         aria-label="Playlist title"
       />

@@ -16,6 +16,7 @@ import { textElipsis } from '~/lib/string'
 import { fetchOembedBatch } from '~/lib/http'
 import type { Song } from '~/hooks/usePlaylist'
 import PlaylistMeta from '~/components/PlaylistMeta/PlaylistMeta'
+import UrlInput from '~/components/UrlInput/UrlInput'
 import css from './SongList.module.css'
 
 interface SongInfo {
@@ -35,6 +36,7 @@ interface SongListProps {
   onPrevious: () => void
   onNext: () => void
   onRemoveSong: (videoId: string) => void
+  onAddYtUrls: (videoIds: string[]) => void
   notify: (opts: { text: string; type?: string; duration?: number }) => void
   readOnly?: boolean
   name: string
@@ -55,6 +57,7 @@ export default function SongList({
   onPrevious,
   onNext,
   onRemoveSong,
+  onAddYtUrls,
   notify,
   readOnly = false,
   name,
@@ -154,6 +157,12 @@ export default function SongList({
       onDragEnter={stopProp}
       onDragLeave={stopProp}
     >
+      {!readOnly && (
+        <div className={css.addUrl}>
+          <UrlInput onAddYtUrls={onAddYtUrls} placeholder="Paste Youtube URL(s) to add" />
+        </div>
+      )}
+
       <header className={css.header}>
         {songNumber > 0 && (
           <>

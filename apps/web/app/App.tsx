@@ -725,6 +725,7 @@ export default function App() {
             onPrevious={playlistPrevious}
             onNext={playlistNext}
             onRemoveSong={playlistRemoveSong}
+            onAddYtUrls={handleAddVideoIdsThroughInput}
             notify={notify}
             readOnly={isForeign}
             name={playlistName}

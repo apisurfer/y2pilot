@@ -1,0 +1,15 @@
+.urlInput {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 17px;
+  outline: none;
+  border: 0;
+  resize: none;
+  font: inherit;
+  border-radius: 4px;
+}
+
+.urlInput:focus {
+  background: rgba(255, 255, 255, 0.18);
+}
