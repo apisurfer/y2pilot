@@ -4,6 +4,7 @@ import {
   useImperativeHandle,
   useRef,
 } from 'react'
+import { useWakeLock } from '~/hooks/useWakeLock'
 import css from './Player.module.css'
 
 const PLAYER_STATE = {
@@ -68,6 +69,11 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
   const initializedRef = useRef(false)
   const sdkIntervalRef = useRef<ReturnType<typeof setInterval>>(undefined)
 
+  // Keep the screen awake while a video is playing (mobile screen sleep).
+  const wakeLock = useWakeLock()
+  const wakeLockRef = useRef(wakeLock)
+  wakeLockRef.current = wakeLock
+
   // Keep callback refs to avoid stale closures in YT event handlers
   const onEndedRef = useRef(onEnded)
   const onReadyRef = useRef(onReady)
@@ -127,6 +133,16 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
               console.error(videoIdRef.current, event)
             },
             onStateChange: (event) => {
+              // Request the wake lock as soon as the video starts playing,
+              // release it once playback stops.
+              if (event.data === PLAYER_STATE.PLAYING) {
+                void wakeLockRef.current.request()
+              } else if (
+                event.data === PLAYER_STATE.PAUSED ||
+                event.data === PLAYER_STATE.ENDED
+              ) {
+                void wakeLockRef.current.release()
+              }
               if (event.data === PLAYER_STATE.ENDED) {
                 onEndedRef.current?.()
               }
