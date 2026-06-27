@@ -14,7 +14,7 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
           <h1>Instantly shareable YouTube playlists</h1>
           <ul>
             <li>no account required</li>
-            <li>no ad interruptions, non-stop play</li>
+            <li>no interruptions, non-stop play</li>
             <li>create, share, play, forget about it</li>
             <li>incognito mode supported</li>
             <li>free 😎</li>
