@@ -598,28 +598,6 @@ export default function App() {
     playlistShuffle()
   }
 
-  // Force an immediate save of an owned playlist (bypasses the auto-save
-  // debounce). Falls back to creating one if it hasn't been created yet.
-  function onSavePlaylist() {
-    if (!playlist.length || isSavingPlaylist || isForeign) return
-    const snapshot = playlist.map((v) => v.videoId)
-    const meta = {
-      name: playlistName.trim() || null,
-      emoji: playlistEmoji || null,
-    }
-    const gen = persistGenRef.current
-    if (playlistId) {
-      saveOwnedPlaylist(playlistId, snapshot, meta, gen)
-    } else {
-      createOwnedPlaylist(snapshot, meta, gen).catch(() => {
-        notify({
-          text: 'Failed to save playlist. Please try again.',
-          type: 'error',
-        })
-      })
-    }
-  }
-
   function onChangeName(newName: string) {
     if (isForeign) return
     setPlaylistName(newName)
@@ -630,8 +608,9 @@ export default function App() {
     setPlaylistEmoji(newEmoji)
   }
 
-  // Fork a foreign (read-only) playlist into a fresh one we own, so it becomes
-  // editable. The new playlist takes over the URL and the session.
+  // Fork the current playlist into a fresh one we own — used both to make a
+  // foreign (read-only) playlist editable and to branch off an owned one for a
+  // new variation. The new playlist takes over the URL and the session.
   function onCopyPlaylist() {
     if (!playlist.length || isSavingPlaylist) return
     persistGenRef.current += 1
@@ -659,13 +638,11 @@ export default function App() {
       <AppHeader
         onToggleHelp={handleShowHelp}
         onTogglePlaylist={handleShowPlaylist}
-        onSavePlaylist={onSavePlaylist}
         onCopyPlaylist={onCopyPlaylist}
         activeStage={showStage}
         playlistCount={playlist.length}
         playlistName={playlistName}
         isOwner={!isForeign}
-        isPlaylistDirty={isPlaylistDirty}
         isSavingPlaylist={isSavingPlaylist}
       />
 

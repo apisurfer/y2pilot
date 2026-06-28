@@ -232,13 +232,15 @@ export default function SongList({
                         onClick={() => onSelectedSongIndex(i)}
                       >
                         <span
-                          className={css.dragHandle}
-                          {...dragProvided.dragHandleProps}
+                          className={`${css.dragHandle} ${readOnly ? css.dragHandleReadOnly : ''}`}
+                          {...(readOnly ? {} : dragProvided.dragHandleProps)}
                         >
-                          <GripVertical
-                            className={css.dragHandleIcon}
-                            size={18}
-                          />
+                          {!readOnly && (
+                            <GripVertical
+                              className={css.dragHandleIcon}
+                              size={18}
+                            />
+                          )}
                           <span className={css.dragHandleIndex}>{i + 1}</span>
                         </span>
                         {songInfo[song.videoId] && (

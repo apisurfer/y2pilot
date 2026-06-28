@@ -76,29 +76,53 @@
   background: rgba(255, 255, 255, 0.08);
 }
 
-.saveButton.pulse {
-  background: rgba(122, 200, 140, 0.28);
-  color: #d6f5dd;
-  animation: savePulse 1.8s ease-in-out infinite;
+/* "Save as new playlist" forks the current videos into a fresh, editable
+   playlist. Kept visually separate from the playlist pill group with a subtle
+   accent so it reads as a distinct action. */
+.forkButton {
+  background: rgba(122, 200, 140, 0.16);
+  color: #cdeccf;
 }
-.saveButton.pulse:hover {
-  background: rgba(122, 200, 140, 0.42);
+.forkButton:hover {
+  background: rgba(122, 200, 140, 0.32);
   color: #fff;
-  animation: none;
 }
 
-@keyframes savePulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(122, 200, 140, 0.45);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(122, 200, 140, 0);
+/* Transient auto-save indicator (not a button) shown to the side of the
+   playlist pill group. Fades in while saving and fades out after "Saved". */
+.saveStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 4px 6px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+.saveStatusVisible {
+  opacity: 1;
+}
+.saveStatusSaving {
+  color: rgba(255, 255, 255, 0.7);
+}
+.saveStatusSaved {
+  color: #7ac88c;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .saveButton.pulse {
+  .spin {
     animation: none;
   }
 }
@@ -151,9 +175,22 @@
     white-space: nowrap;
   }
 
-  /* Save/copy pill keeps its label but never shrinks the icon away */
+  /* Small pills never shrink their icon away */
   .pillButtonSmall {
     flex-shrink: 0;
+  }
+
+  /* The fork action collapses to just its icon to free up room for the title */
+  .forkButton span {
+    display: none;
+  }
+
+  /* Save status collapses to just its icon to free up room for the title */
+  .saveStatus {
+    flex-shrink: 0;
+  }
+  .saveStatus span {
+    display: none;
   }
 
   /* Help button collapses to its icon */

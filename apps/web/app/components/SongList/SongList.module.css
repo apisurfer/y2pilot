@@ -154,6 +154,9 @@
   justify-content: center;
   align-items: center;
 }
+.dragHandleReadOnly {
+  cursor: default;
+}
 .dragHandleIndex {
   display: inline-block;
   margin-left: 0.25rem;

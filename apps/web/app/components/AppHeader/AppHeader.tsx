@@ -1,4 +1,5 @@
-import { HelpCircle, ListMusic, Save, Copy, Check } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { HelpCircle, ListMusic, Copy, Check, Loader2 } from 'lucide-react'
 import pilotSvg from '~/assets/pilot.svg'
 import css from './AppHeader.module.css'
 
@@ -7,11 +8,9 @@ interface AppHeaderProps {
   playlistCount: number
   playlistName: string
   isOwner: boolean
-  isPlaylistDirty: boolean
   isSavingPlaylist: boolean
   onToggleHelp: () => void
   onTogglePlaylist: () => void
-  onSavePlaylist: () => void
   onCopyPlaylist: () => void
 }
 
@@ -20,29 +19,43 @@ export default function AppHeader({
   playlistCount,
   playlistName,
   isOwner,
-  isPlaylistDirty,
   isSavingPlaylist,
   onToggleHelp,
   onTogglePlaylist,
-  onSavePlaylist,
   onCopyPlaylist,
 }: AppHeaderProps) {
   const hasPlaylist = playlistCount > 0
   const trimmedName = playlistName.trim()
-  // Owners auto-save, so the pill is just a status indicator (clicking forces a
-  // save now). It pulses while there are changes still waiting to be persisted.
-  const showSavePulse = isPlaylistDirty && !isSavingPlaylist
-  const saveLabel = isSavingPlaylist
-    ? 'Saving…'
-    : isPlaylistDirty
-      ? 'Save now'
-      : 'Saved'
-  const saveTitle = isSavingPlaylist
-    ? 'Saving…'
-    : isPlaylistDirty
-      ? 'You have unsaved changes — they auto-save shortly. Click to save now.'
-      : 'All changes saved'
-  const SaveStatusIcon = isPlaylistDirty || isSavingPlaylist ? Save : Check
+
+  // The fork action means two different things depending on ownership: owners
+  // branch their playlist into a separate editable version; viewers of someone
+  // else's read-only playlist make their own editable copy.
+  const forkLabel = isOwner ? 'Save as new version' : 'Make your own copy'
+  const forkTitle = isOwner
+    ? 'Branch these videos into a separate playlist you can edit independently'
+    : 'Create your own editable copy of this playlist'
+
+  // Auto-save is silent; this drives a transient status indicator on the side:
+  // "Saving…" while a save is in flight, then a green "Saved" that fades out a
+  // few seconds after the save settles.
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>(
+    'idle',
+  )
+
+  useEffect(() => {
+    if (isSavingPlaylist) {
+      setSaveStatus('saving')
+      return
+    }
+    setSaveStatus((prev) => (prev === 'saving' ? 'saved' : prev))
+  }, [isSavingPlaylist])
+
+  useEffect(() => {
+    if (saveStatus !== 'saved') return
+    const handle = setTimeout(() => setSaveStatus('idle'), 2500)
+    return () => clearTimeout(handle)
+  }, [saveStatus])
+
   return (
     <div className={css.appHeader}>
       <div className={css.leftGroup}>
@@ -58,43 +71,50 @@ export default function AppHeader({
           <span>y2pilot</span>
         </a>
         {hasPlaylist && (
-          <div className={css.playlistGroup}>
+          <>
+            <div className={css.playlistGroup}>
+              <button
+                type="button"
+                className={`${css.pillButton} ${activeStage === 'playlist' ? css.active : ''}`}
+                onClick={onTogglePlaylist}
+              >
+                <ListMusic size={18} />
+                <span>
+                  {trimmedName
+                    ? `${trimmedName} (${playlistCount})`
+                    : `${playlistCount} video${playlistCount === 1 ? '' : 's'}`}
+                </span>
+              </button>
+            </div>
             <button
               type="button"
-              className={`${css.pillButton} ${activeStage === 'playlist' ? css.active : ''}`}
-              onClick={onTogglePlaylist}
+              className={`${css.pillButton} ${css.pillButtonSmall} ${css.forkButton}`}
+              onClick={onCopyPlaylist}
+              disabled={isSavingPlaylist}
+              title={forkTitle}
             >
-              <ListMusic size={18} />
-              <span>
-                {trimmedName
-                  ? `${trimmedName} (${playlistCount})`
-                  : `${playlistCount} video${playlistCount === 1 ? '' : 's'}`}
-              </span>
+              <Copy size={14} />
+              <span>{forkLabel}</span>
             </button>
-            {isOwner ? (
-              <button
-                type="button"
-                className={`${css.pillButton} ${css.pillButtonSmall} ${css.saveButton} ${showSavePulse ? css.pulse : ''}`}
-                onClick={onSavePlaylist}
-                disabled={!isPlaylistDirty || isSavingPlaylist}
-                title={saveTitle}
-              >
-                <SaveStatusIcon size={14} />
-                <span>{saveLabel}</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={`${css.pillButton} ${css.pillButtonSmall} ${css.saveButton} ${showSavePulse ? css.pulse : ''}`}
-                onClick={onCopyPlaylist}
-                disabled={isSavingPlaylist}
-                title="This playlist belongs to someone else. Make your own editable copy."
-              >
-                <Copy size={14} />
-                <span>{isSavingPlaylist ? 'Copying…' : 'Make a copy'}</span>
-              </button>
-            )}
-          </div>
+            <div
+              className={`${css.saveStatus} ${
+                saveStatus === 'idle' ? '' : css.saveStatusVisible
+              } ${saveStatus === 'saving' ? css.saveStatusSaving : css.saveStatusSaved}`}
+              aria-live="polite"
+            >
+              {saveStatus === 'saving' ? (
+                <>
+                  <Loader2 size={14} className={css.spin} />
+                  <span>Saving…</span>
+                </>
+              ) : (
+                <>
+                  <Check size={14} />
+                  <span>Saved</span>
+                </>
+              )}
+            </div>
+          </>
         )}
       </div>
       <div className={css.rightGroup}>
