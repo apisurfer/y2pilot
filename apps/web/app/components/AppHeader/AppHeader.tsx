@@ -30,9 +30,9 @@ export default function AppHeader({
   // The fork action means two different things depending on ownership: owners
   // branch their playlist into a separate editable version; viewers of someone
   // else's read-only playlist make their own editable copy.
-  const forkLabel = isOwner ? 'Save as new version' : 'Make your own copy'
+  const forkLabel = isOwner ? 'Create a new version' : 'Make your own copy'
   const forkTitle = isOwner
-    ? 'Branch these videos into a separate playlist you can edit independently'
+    ? 'Branch these videos into a separate playlist that opens in a new tab'
     : 'Create your own editable copy of this playlist'
 
   // Auto-save is silent; this drives a transient status indicator on the side:

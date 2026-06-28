@@ -608,18 +608,46 @@ export default function App() {
     setPlaylistEmoji(newEmoji)
   }
 
-  // Fork the current playlist into a fresh one we own — used both to make a
-  // foreign (read-only) playlist editable and to branch off an owned one for a
-  // new variation. The new playlist takes over the URL and the session.
+  // Fork the current playlist into a fresh one we own. The behaviour differs by
+  // ownership: viewers of a foreign (read-only) playlist take over the current
+  // session with their editable copy, while owners branch off a brand-new
+  // version that opens in its own tab — leaving the current playlist untouched.
   function onCopyPlaylist() {
     if (!playlist.length || isSavingPlaylist) return
-    persistGenRef.current += 1
-    const gen = persistGenRef.current
     const snapshot = playlist.map((v) => v.videoId)
     const meta = {
       name: playlistName.trim() || null,
       emoji: playlistEmoji || null,
     }
+
+    if (!isForeign) {
+      // Open the tab synchronously (within the click handler) so the browser
+      // doesn't treat it as a blocked popup, then point it at the new playlist
+      // once the backend assigns an id. Same-origin tabs share our owner token,
+      // so the new tab loads the version as editable.
+      const newTab = window.open('about:blank', '_blank')
+      setIsSavingPlaylist(true)
+      createPlaylist(snapshot, meta)
+        .then((newId) => {
+          if (!newId) throw new Error('No playlist ID')
+          if (newTab) newTab.location.href = `/p/${newId}`
+          notify({ text: 'New version created in a new tab.' })
+        })
+        .catch(() => {
+          if (newTab) newTab.close()
+          notify({
+            text: 'Failed to create a new version. Please try again.',
+            type: 'error',
+          })
+        })
+        .finally(() => {
+          setIsSavingPlaylist(false)
+        })
+      return
+    }
+
+    persistGenRef.current += 1
+    const gen = persistGenRef.current
     createOwnedPlaylist(snapshot, meta, gen)
       .then(() => {
         if (gen !== persistGenRef.current) return
