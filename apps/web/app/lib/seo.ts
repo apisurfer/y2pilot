@@ -1,5 +1,6 @@
 export const SITE_URL = 'https://y2pilot.com'
 export const SITE_TITLE = 'y2pilot – Instantly shareable YouTube playlists'
+export const SITE_IMAGE = `${SITE_URL}/og-image.jpg`
 export const SITE_DESCRIPTION =
   'Create and share YouTube playlists instantly. No account required, non-stop playback, looping and shuffle. Just paste or drop YouTube links and play. Free.'
 
@@ -13,7 +14,12 @@ export const defaultSeoMeta = [
   { property: 'og:site_name', content: 'y2pilot' },
   { property: 'og:title', content: SITE_TITLE },
   { property: 'og:description', content: SITE_DESCRIPTION },
-  { name: 'twitter:card', content: 'summary' },
+  { property: 'og:image', content: SITE_IMAGE },
+  { property: 'og:image:width', content: '1200' },
+  { property: 'og:image:height', content: '630' },
+  { property: 'og:image:alt', content: 'y2pilot landing page: instantly shareable YouTube playlists' },
+  { name: 'twitter:card', content: 'summary_large_image' },
+  { name: 'twitter:image', content: SITE_IMAGE },
 ]
 
 interface PageSeo {
