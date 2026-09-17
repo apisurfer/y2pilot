@@ -65,8 +65,9 @@ function isSupported() {
  * Action handlers are only honoured while media is playing in *this* document,
  * and the video lives in a cross-origin YouTube iframe we can't reach into —
  * hence the silent keep-alive track, which exists purely to make this page the
- * one the keys are routed to. It starts only once a video is loaded, so an
- * empty playlist never takes the keys away from whatever else is playing.
+ * one the keys are routed to. It plays and pauses in lockstep with the video,
+ * and only exists while one is loaded, so an empty playlist never takes the
+ * keys away from whatever else is playing.
  */
 export function useMediaSession({
   videoId,
@@ -82,6 +83,9 @@ export function useMediaSession({
   actionsRef.current = { onPlay, onPause, onNext, onPrevious }
 
   const hasVideo = videoId !== null
+  const keepAliveRef = useRef<HTMLAudioElement | null>(null)
+  const isPlayingRef = useRef(isPlaying)
+  isPlayingRef.current = isPlaying
 
   useEffect(() => {
     if (!hasVideo || !isSupported()) return
@@ -90,24 +94,15 @@ export function useMediaSession({
     const silenceUrl = createSilenceUrl()
     const keepAlive = new Audio(silenceUrl)
     keepAlive.loop = true
-    let released = false
+    keepAliveRef.current = keepAlive
 
-    const play = () => {
-      if (released) return
-      keepAlive.play().catch(() => {
-        // Autoplay policy can reject until the next gesture; the listeners
-        // below retry then.
-      })
+    // Autoplay policy can reject the first play(); retry on the next gesture.
+    const resume = () => {
+      if (!isPlayingRef.current) return
+      keepAlive.play().catch(() => {})
     }
-
-    // Some browsers pause every player in the session on a pause action.
-    // Resume, or we'd lose the keys right after the first press.
-    const onKeepAlivePause = () => play()
-    keepAlive.addEventListener('pause', onKeepAlivePause)
-
-    document.addEventListener('pointerdown', play)
-    document.addEventListener('keydown', play)
-    play()
+    document.addEventListener('pointerdown', resume)
+    document.addEventListener('keydown', resume)
 
     const handlers: Array<[MediaSessionAction, () => void]> = [
       ['play', () => actionsRef.current.onPlay()],
@@ -125,10 +120,9 @@ export function useMediaSession({
     }
 
     return () => {
-      released = true
-      keepAlive.removeEventListener('pause', onKeepAlivePause)
-      document.removeEventListener('pointerdown', play)
-      document.removeEventListener('keydown', play)
+      document.removeEventListener('pointerdown', resume)
+      document.removeEventListener('keydown', resume)
+      keepAliveRef.current = null
       keepAlive.pause()
       keepAlive.src = ''
       URL.revokeObjectURL(silenceUrl)
@@ -144,8 +138,17 @@ export function useMediaSession({
     }
   }, [hasVideo])
 
+  // The browser decides whether a key press means `play` or `pause` from the
+  // state of the players in the session, not from `playbackState`.
   useEffect(() => {
-    if (!hasVideo || !isSupported()) return
+    const keepAlive = keepAliveRef.current
+    if (!keepAlive) return
+
+    if (isPlaying) {
+      keepAlive.play().catch(() => {})
+    } else {
+      keepAlive.pause()
+    }
     navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
   }, [hasVideo, isPlaying])
 
