@@ -54,6 +54,7 @@
   padding: 8px 14px;
   cursor: pointer;
   font: inherit;
+  text-decoration: none;
   border-radius: 999px;
 }
 

@@ -159,7 +159,7 @@ export default function SongList({
     >
       {!readOnly && (
         <div className={css.addUrl}>
-          <UrlInput onAddYtUrls={onAddYtUrls} placeholder="Paste Youtube URL(s) to add" />
+          <UrlInput onAddYtUrls={onAddYtUrls} placeholder="Paste YouTube URL(s) to add" />
         </div>
       )}
 

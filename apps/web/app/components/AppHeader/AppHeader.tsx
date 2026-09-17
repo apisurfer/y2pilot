@@ -5,21 +5,22 @@ import css from './AppHeader.module.css'
 
 interface AppHeaderProps {
   activeStage: string
-  playlistCount: number
-  playlistName: string
-  isOwner: boolean
-  isSavingPlaylist: boolean
-  onToggleHelp: () => void
-  onTogglePlaylist: () => void
-  onCopyPlaylist: () => void
+  playlistCount?: number
+  playlistName?: string
+  isOwner?: boolean
+  isSavingPlaylist?: boolean
+  // Without it, the help link navigates to the standalone /help page.
+  onToggleHelp?: () => void
+  onTogglePlaylist?: () => void
+  onCopyPlaylist?: () => void
 }
 
 export default function AppHeader({
   activeStage,
-  playlistCount,
-  playlistName,
-  isOwner,
-  isSavingPlaylist,
+  playlistCount = 0,
+  playlistName = '',
+  isOwner = true,
+  isSavingPlaylist = false,
   onToggleHelp,
   onTogglePlaylist,
   onCopyPlaylist,
@@ -118,14 +119,20 @@ export default function AppHeader({
         )}
       </div>
       <div className={css.rightGroup}>
-        <button
-          type="button"
+        {/* A real link so crawlers find /help; in the app a plain click
+            toggles the overlay instead, keeping playback going. */}
+        <a
+          href="/help"
           className={`${css.pillButton} ${activeStage === 'help' ? css.active : ''}`}
-          onClick={onToggleHelp}
+          onClick={(e) => {
+            if (!onToggleHelp || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+            e.preventDefault()
+            onToggleHelp()
+          }}
         >
           <HelpCircle size={18} />
           <span>help</span>
-        </button>
+        </a>
       </div>
     </div>
   )

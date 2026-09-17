@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getYtVideoId, getYtUrls } from '~/lib/string'
 import css from './UrlInput.module.css'
 
@@ -18,10 +18,16 @@ interface UrlInputProps {
 export default function UrlInput({
   onAddYtUrls,
   autoFocus = false,
-  placeholder = 'Paste Youtube URL(s)',
+  placeholder = 'Paste YouTube URL(s)',
   className,
 }: UrlInputProps) {
   const [urlInput, setUrlInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // React ignores `autoFocus` when hydrating prerendered markup.
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus()
+  }, [autoFocus])
 
   function handleUrlChange(value: string) {
     setUrlInput(value)
@@ -37,8 +43,8 @@ export default function UrlInput({
 
   return (
     <input
+      ref={inputRef}
       value={urlInput}
-      autoFocus={autoFocus}
       className={`${css.urlInput} ${className || ''}`}
       type="url"
       placeholder={placeholder}

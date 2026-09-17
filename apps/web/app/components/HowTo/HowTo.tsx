@@ -23,7 +23,7 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
         <div className={css.initInstructions}>
           <UrlInput autoFocus onAddYtUrls={onAddYtUrls} className={css.urlInput} />
           <p>
-            Drag and drop, or paste a Youtube:
+            Drag and drop, or paste a YouTube:
           </p>
           <ul>
             <li>link</li>
@@ -31,7 +31,7 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
             <li>video thumbnail</li>
           </ul>
           <p>
-            Try it out with following example:
+            Try it out with the following example:
             <br />
             1. grab the link
             <br />
@@ -41,12 +41,14 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
             <img src={lesgo} alt="" />
             <a
               className={css.ytThumb}
+              aria-label="Example YouTube video"
               href="https://www.youtube.com/watch?v=1c4DFNy2t9E&list=RD1c4DFNy2t9E"
             >
               {' '}
             </a>
             <a
               className={css.ytTitle}
+              aria-label="Example YouTube video"
               href="https://www.youtube.com/watch?v=1c4DFNy2t9E&list=RD1c4DFNy2t9E"
             >
               

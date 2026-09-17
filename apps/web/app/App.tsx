@@ -350,8 +350,10 @@ export default function App() {
     const prefix = [playlistEmoji.trim(), playlistName.trim()]
       .filter(Boolean)
       .join(' ')
+    // Keep the landing page's SEO title until a playlist exists.
+    if (!prefix && !playlistId && !routePlaylistId) return
     document.title = prefix ? `${prefix} - y2pilot` : 'y2pilot'
-  }, [playlistEmoji, playlistName])
+  }, [playlistEmoji, playlistName, playlistId, routePlaylistId])
 
   // --- Page focus / visibility management ---
   useEffect(() => {
@@ -739,13 +741,8 @@ export default function App() {
             onChangeEmoji={onChangeEmoji}
           />
         </div>
-        <div
-          style={{
-            display: showStage === stages.HELP ? undefined : 'none',
-          }}
-        >
-          <HelpScreen />
-        </div>
+        {/* Mounted only when open so the prerendered index doesn't duplicate /help. */}
+        {showStage === stages.HELP && <HelpScreen />}
 
         {isLoadingPlaylist && <Loader />}
       </div>
