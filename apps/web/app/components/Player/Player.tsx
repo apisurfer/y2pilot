@@ -18,6 +18,8 @@ const PLAYER_STATE = {
 
 export interface PlayerHandle {
   seek(seconds: number, allowSeekAhead?: boolean): void
+  play(): void
+  pause(): void
 }
 
 interface PlayerProps {
@@ -29,6 +31,7 @@ interface PlayerProps {
   onEnded?: () => void
   onReady?: () => void
   onError?: (videoId: string) => void
+  onPlayingChange?: (isPlaying: boolean) => void
 }
 
 function playSlice(
@@ -57,6 +60,7 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
     onEnded,
     onReady,
     onError,
+    onPlayingChange,
   },
   ref,
 ) {
@@ -78,6 +82,7 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
   const onEndedRef = useRef(onEnded)
   const onReadyRef = useRef(onReady)
   const onErrorRef = useRef(onError)
+  const onPlayingChangeRef = useRef(onPlayingChange)
   const videoIdRef = useRef(videoId)
   const startSecondsRef = useRef(startSeconds)
   const endSecondsRef = useRef(endSeconds)
@@ -85,6 +90,7 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
   onEndedRef.current = onEnded
   onReadyRef.current = onReady
   onErrorRef.current = onError
+  onPlayingChangeRef.current = onPlayingChange
   videoIdRef.current = videoId
   startSecondsRef.current = startSeconds
   endSecondsRef.current = endSeconds
@@ -92,6 +98,12 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
   useImperativeHandle(ref, () => ({
     seek(seconds: number, allowSeekAhead = true) {
       playerRef.current?.seekTo(seconds, allowSeekAhead)
+    },
+    play() {
+      playerRef.current?.playVideo()
+    },
+    pause() {
+      playerRef.current?.pauseVideo()
     },
   }))
 
@@ -137,11 +149,13 @@ const Player = forwardRef<PlayerHandle, PlayerProps>(function Player(
               // release it once playback stops.
               if (event.data === PLAYER_STATE.PLAYING) {
                 void wakeLockRef.current.request()
+                onPlayingChangeRef.current?.(true)
               } else if (
                 event.data === PLAYER_STATE.PAUSED ||
                 event.data === PLAYER_STATE.ENDED
               ) {
                 void wakeLockRef.current.release()
+                onPlayingChangeRef.current?.(false)
               }
               if (event.data === PLAYER_STATE.ENDED) {
                 onEndedRef.current?.()

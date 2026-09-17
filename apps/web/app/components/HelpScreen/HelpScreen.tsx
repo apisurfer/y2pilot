@@ -103,6 +103,10 @@ export default function HelpScreen({ headingLevel = 'h2' }: HelpScreenProps) {
               Skip video &mdash;{' '}
               <strong className={css.emphasize}>shift + 1, 2, 3</strong>
             </span>
+            <span className={css.shortcutExplanation}>
+              Play/pause, next, previous &mdash;{' '}
+              <strong className={css.emphasize}>media keys</strong>
+            </span>
           </p>
         </aside>
       </div>

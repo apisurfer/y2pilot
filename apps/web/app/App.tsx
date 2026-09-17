@@ -9,6 +9,7 @@ import HelpScreen from '~/components/HelpScreen/HelpScreen'
 import Loader from '~/components/Loader/Loader'
 import { useNotify } from '~/components/Notifications'
 import { usePlaylist } from '~/hooks/usePlaylist'
+import { useMediaSession } from '~/hooks/useMediaSession'
 import { getYtVideoId, getYtUrls } from '~/lib/string'
 import {
   fetchPlaylist as fetchPlaylistApi,
@@ -55,6 +56,7 @@ export default function App() {
   } = usePlaylist()
 
   const [videoSlice, setVideoSlice] = useState<VideoSlice | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [dropMode, setDropMode] = useState(false)
   // True while a playlist referenced by the /p/:id route is being fetched. Drives
   // a centered loader over an otherwise empty main area until the playlist is
@@ -117,6 +119,16 @@ export default function App() {
   useEffect(() => {
     setCurrentVideoSlice()
   }, [playlist, playlistIndex, setCurrentVideoSlice])
+
+  // Hardware media keys / OS media controls drive the playlist too.
+  useMediaSession({
+    videoId: videoSlice?.videoId ?? null,
+    isPlaying,
+    onPlay: () => playerRef.current?.play(),
+    onPause: () => playerRef.current?.pause(),
+    onNext: playlistNext,
+    onPrevious: playlistPrevious,
+  })
 
   // --- Dirty tracking ---
   // The playlist is "dirty" when the local set/order of videoIds differs from
@@ -702,6 +714,7 @@ export default function App() {
               onEnded={handleSongEnded}
               onReady={() => {}}
               onError={onPlaybackError}
+              onPlayingChange={setIsPlaying}
             />
           )}
         </div>
