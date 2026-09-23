@@ -36,6 +36,8 @@ export default function HowTo({ onAddYtUrls }: HowToProps) {
             1. grab the link
             <br />
             2. drop it anywhere on this page.
+            <br />
+            3. bookmark to save and reuse playlist or share the URL
           </p>
           <div className={css.ytCard}>
             <img src={lesgo} alt="" />
