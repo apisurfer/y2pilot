@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import AppHeader from '~/components/AppHeader/AppHeader'
 import Player, { type PlayerHandle } from '~/components/Player/Player'
 import DropArea from '~/components/DropArea/DropArea'
@@ -34,6 +34,7 @@ type Stage = (typeof stages)[keyof typeof stages]
 
 export default function App() {
   const notify = useNotify()
+  const navigate = useNavigate()
   const playerRef = useRef<PlayerHandle>(null)
 
   // Playlist id from the /p/$playlistId route (undefined on the index route).
@@ -166,11 +167,25 @@ export default function App() {
   const autoCreateInFlightRef = useRef(false)
   const loadingFromUrlRef = useRef(false)
 
-  // Reflect the bound playlist id in the URL as /p/:id without triggering a
-  // router navigation (which would remount this component and reload state).
-  const setPlaylistUrl = useCallback((id: string) => {
-    window.history.replaceState(null, '', `/p/${id}`)
-  }, [])
+  // Reflect the bound playlist id in the URL as /p/:id. Uses a route mask so
+  // the router stays on the current route (navigating for real would remount
+  // this component and reload state); a reload then opens /p/:id itself.
+  const setPlaylistUrl = useCallback(
+    (id: string) =>
+      navigate({
+        to: '.',
+        replace: true,
+        // The router drops a masked navigation that changes neither the real
+        // URL nor the history state, so record the id there.
+        state: (prev) => ({ ...prev, playlistId: id }),
+        mask: {
+          to: '/p/$playlistId',
+          params: { playlistId: id },
+          unmaskOnReload: true,
+        },
+      }),
+    [navigate],
+  )
 
   // Create a backend playlist owned by this browser (token sent by the http
   // layer), bind the session to it, and reflect its id in the URL.
