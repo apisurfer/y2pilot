@@ -47,6 +47,12 @@ interface Window {
       options?: YT.PlayerOptions,
     ) => YT.Player
   }
+  // Set by public/_worker.js on /p/* pages of existing playlists.
+  __PLAYLIST_SEO__?: {
+    id: string
+    title: string
+    description: string
+  }
 }
 
 declare module '*.module.css' {

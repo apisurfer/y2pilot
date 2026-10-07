@@ -12,11 +12,12 @@ export default defineConfig({
   plugins: [
     tanstackStart({
       srcDirectory: 'app',
-      // `/` is fully prerendered for crawlers; client-only routes (/p/*) fall
-      // back to the SPA shell via public/_redirects.
+      // `/` is fully prerendered for crawlers; client-only routes (/p/*) get
+      // the SPA shell, with playlist head tags added by public/_worker.js.
       spa: {
         // Must not be '/' (the shell would overwrite the prerendered index) and
-        // must not match a route with its own SEO head.
+        // must not match a route that renders its own SEO head on the server
+        // (/p/$playlistId only does so on the client).
         maskPath: '/p/_shell',
         enabled: true,
         prerender: {

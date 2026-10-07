@@ -356,16 +356,24 @@ export default function App() {
   }, [isPlaylistDirty, isMetaDirty, isForeign])
 
   // --- Document title reflects the playlist's emoji + title ---
-  // Format: "<emoji> <title> - y2pilot", with each part optional (just
-  // "y2pilot" when neither is set).
+  // Format: "<emoji> <title> - y2pilot", with each part optional ("YouTube
+  // playlist - y2pilot" when neither is set). Matches public/_worker.js.
   useEffect(() => {
+    // Keep the server-rendered title until the playlist has loaded.
+    if (isLoadingPlaylist) return
     const prefix = [playlistEmoji.trim(), playlistName.trim()]
       .filter(Boolean)
       .join(' ')
     // Keep the landing page's SEO title until a playlist exists.
     if (!prefix && !playlistId && !routePlaylistId) return
-    document.title = prefix ? `${prefix} - y2pilot` : 'y2pilot'
-  }, [playlistEmoji, playlistName, playlistId, routePlaylistId])
+    document.title = `${prefix || 'YouTube playlist'} - y2pilot`
+  }, [
+    playlistEmoji,
+    playlistName,
+    playlistId,
+    routePlaylistId,
+    isLoadingPlaylist,
+  ])
 
   // --- Page focus / visibility management ---
   useEffect(() => {

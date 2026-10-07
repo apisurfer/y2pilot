@@ -64,6 +64,12 @@ pnpm dev          # web on http://localhost:5173
 pnpm worker:dev   # worker on http://localhost:8787
 ```
 
+## Playlist page metadata
+
+The web app is hosted on Cloudflare Pages. `apps/web/public/_worker.js` runs on `/p/*` (see `_routes.json`), looks the playlist up through the worker API and writes its title, description, canonical URL and `index, follow` into the served HTML. Playlists that don't exist return a 404 and stay `noindex`.
+
+It reads the API URL from the `VITE_WORKER_URL` environment variable at runtime, so that variable has to be set on the Pages project itself (not only at build time). Without it playlist pages still load, but keep the generic `noindex` head.
+
 ## Other scripts
 
 ```

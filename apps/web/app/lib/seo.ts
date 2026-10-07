@@ -4,8 +4,9 @@ export const SITE_IMAGE = `${SITE_URL}/og-image.jpg`
 export const SITE_DESCRIPTION =
   'Create and share YouTube playlists instantly. No account required, non-stop playback, looping and shuffle. Just paste or drop YouTube links and play. Free.'
 
-// Root-level defaults. Routes without seoHead() (e.g. shared playlists) stay
-// out of the index but still get a proper link preview; deeper routes win.
+// Root-level defaults. Routes without seoHead() (e.g. playlists that don't
+// exist) stay out of the index but still get a proper link preview; deeper
+// routes win.
 export const defaultSeoMeta = [
   { title: SITE_TITLE },
   { name: 'description', content: SITE_DESCRIPTION },
@@ -43,4 +44,18 @@ export function seoHead({ path, title, description }: PageSeo) {
     ],
     links: [{ rel: 'canonical', href: url }],
   }
+}
+
+// Playlist pages get their head tags from public/_worker.js, which also leaves
+// the values it used on window. Render the same tags on the client so
+// hydration doesn't fall back to the noindex defaults.
+export function playlistSeoHead(playlistId: string) {
+  const seo =
+    typeof window === 'undefined' ? undefined : window.__PLAYLIST_SEO__
+  if (seo?.id !== playlistId) return {}
+  return seoHead({
+    path: `/p/${playlistId}`,
+    title: seo.title,
+    description: seo.description,
+  })
 }
